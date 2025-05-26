@@ -4,38 +4,62 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 
 const prospekData = [
   {
     id: 1,
     createdDate: '15/01/2024 09:30',
-    tanggalProspek: '15/01/2024',
+    tanggalProspekMasuk: '15/01/2024',
     sumberLeads: 'Meta Ads',
-    kodeAds: 'MA01',
+    kodeAds: 'META',
     idAds: '5',
     namaProspek: 'Dr. Ahmad Fauzi',
     noWhatsApp: '081234567890',
     statusLeads: 'Leads',
+    alasanBukanLeads: '',
+    keterangan: '',
     layananAssist: 'SIMRS',
     namaFaskes: 'RS Prima Medika',
     tipeFaskes: 'Rumah Sakit',
-    lokasi: 'DKI Jakarta',
+    lokasiFaskes: 'DKI Jakarta, Jakarta Pusat',
     picLeads: 'CS Support 1'
   },
   {
     id: 2,
     createdDate: '15/01/2024 10:15',
-    tanggalProspek: '15/01/2024',
-    sumberLeads: 'Google',
+    tanggalProspekMasuk: '15/01/2024',
+    sumberLeads: 'Google Ads',
+    kodeAds: 'GOOG',
+    idAds: '3',
     namaProspek: 'dr. Siti Nurhaliza',
     noWhatsApp: '082345678901',
     statusLeads: 'Dihubungi',
+    alasanBukanLeads: '',
+    keterangan: 'Tertarik dengan demo',
     layananAssist: 'Telemedicine',
     namaFaskes: 'Klinik Sehat Bersama',
     tipeFaskes: 'Klinik',
-    lokasi: 'Jawa Barat',
+    lokasiFaskes: 'Jawa Barat, Bandung',
     picLeads: 'CS Support 2'
+  },
+  {
+    id: 3,
+    createdDate: '16/01/2024 14:20',
+    tanggalProspekMasuk: '16/01/2024',
+    sumberLeads: 'Referral',
+    kodeAds: '',
+    idAds: '',
+    namaProspek: 'Dr. Budi Santoso',
+    noWhatsApp: '083456789012',
+    statusLeads: 'Bukan Leads',
+    alasanBukanLeads: 'Budget Tidak Sesuai',
+    keterangan: 'Menginginkan harga lebih murah',
+    layananAssist: 'EMR',
+    namaFaskes: 'Puskesmas Sukamaju',
+    tipeFaskes: 'Puskesmas',
+    lokasiFaskes: 'Jawa Timur, Surabaya',
+    picLeads: 'CS Support 1'
   }
 ];
 
@@ -123,15 +147,20 @@ export function ProspekTable() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Created Date</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Tanggal Prospek</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Tanggal Prospek Masuk</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Sumber Leads</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Kode Ads</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">ID Ads</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Nama Prospek</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">No WhatsApp</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Layanan</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Faskes</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">PIC</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Status Leads</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Alasan Bukan Leads</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Keterangan</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Layanan Assist</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Nama Faskes</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Tipe Faskes</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Lokasi Faskes</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">PIC Leads</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Aksi</th>
                 </tr>
               </thead>
@@ -139,9 +168,10 @@ export function ProspekTable() {
                 {filteredData.map((item) => (
                   <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-3 px-4 text-sm text-gray-900">{item.createdDate}</td>
-                    <td className="py-3 px-4 text-sm text-gray-900">{item.tanggalProspek}</td>
+                    <td className="py-3 px-4 text-sm text-gray-900">{item.tanggalProspekMasuk}</td>
                     <td className="py-3 px-4 text-sm text-gray-900">{item.sumberLeads}</td>
                     <td className="py-3 px-4 text-sm text-gray-900">{item.kodeAds || '-'}</td>
+                    <td className="py-3 px-4 text-sm text-gray-900">{item.idAds || '-'}</td>
                     <td className="py-3 px-4 text-sm font-medium text-gray-900">{item.namaProspek}</td>
                     <td className="py-3 px-4 text-sm text-gray-900">{item.noWhatsApp}</td>
                     <td className="py-3 px-4">
@@ -154,16 +184,24 @@ export function ProspekTable() {
                         {item.statusLeads}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-900">{item.layananAssist}</td>
+                    <td className="py-3 px-4 text-sm text-gray-900">{item.alasanBukanLeads || '-'}</td>
                     <td className="py-3 px-4 text-sm text-gray-900">
-                      <div>
-                        <div className="font-medium">{item.namaFaskes}</div>
-                        <div className="text-gray-500">{item.tipeFaskes} - {item.lokasi}</div>
-                      </div>
+                      {item.keterangan ? (
+                        <span className="max-w-32 truncate block" title={item.keterangan}>
+                          {item.keterangan}
+                        </span>
+                      ) : '-'}
                     </td>
+                    <td className="py-3 px-4 text-sm text-gray-900">{item.layananAssist}</td>
+                    <td className="py-3 px-4 text-sm text-gray-900">{item.namaFaskes}</td>
+                    <td className="py-3 px-4 text-sm text-gray-900">{item.tipeFaskes}</td>
+                    <td className="py-3 px-4 text-sm text-gray-900">{item.lokasiFaskes}</td>
                     <td className="py-3 px-4 text-sm text-gray-900">{item.picLeads}</td>
                     <td className="py-3 px-4">
                       <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button size="sm" variant="outline" className="h-8 w-8 p-0">
                           <Edit className="h-4 w-4" />
                         </Button>
