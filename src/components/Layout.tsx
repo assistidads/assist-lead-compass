@@ -1,16 +1,15 @@
 
 import { useState } from 'react';
 import { Sidebar, SidebarProvider, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { BarChart3, Users, FileText, Settings, TrendingUp, Database, Plus } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface LayoutProps {
-  children: React.ReactNode;
+  children: (props: { currentPage: string }) => React.ReactNode;
 }
 
 const menuItems = [
   { title: 'Dashboard', icon: BarChart3, path: 'dashboard' },
-  { title: 'Input Prospek', icon: Plus, path: 'input' },
   { title: 'Data Prospek', icon: Users, path: 'prospek' },
   { title: 'Laporan', icon: TrendingUp, path: 'laporan' },
   { title: 'Data Master', icon: Database, path: 'master' },

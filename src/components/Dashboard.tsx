@@ -101,10 +101,10 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Service Performance Chart */}
+        {/* Service Performance Chart - Updated to show both Prospek and Leads */}
         <Card className="bg-white border border-gray-200">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900">Leads per Layanan Assist</CardTitle>
+            <CardTitle className="text-lg font-semibold text-gray-900">Prospek & Leads per Layanan Assist</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -113,7 +113,8 @@ export function Dashboard() {
                 <XAxis dataKey="layanan" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="leads" fill="#2563eb" />
+                <Bar dataKey="prospek" fill="#94a3b8" name="Prospek" />
+                <Bar dataKey="leads" fill="#2563eb" name="Leads" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

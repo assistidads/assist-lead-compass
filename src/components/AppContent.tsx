@@ -11,8 +11,6 @@ export function AppContent({ currentPage }: AppContentProps) {
   switch (currentPage) {
     case 'dashboard':
       return <Dashboard />;
-    case 'input':
-      return <ProspekForm />;
     case 'prospek':
       return <ProspekTable />;
     case 'laporan':
