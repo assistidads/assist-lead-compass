@@ -1,14 +1,17 @@
 
 import { Layout } from '@/components/Layout';
 import { AppContent } from '@/components/AppContent';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const Index = () => {
   return (
-    <Layout>
-      {({ currentPage }: { currentPage: string }) => (
-        <AppContent currentPage={currentPage} />
-      )}
-    </Layout>
+    <ProtectedRoute>
+      <Layout>
+        {({ currentPage }: { currentPage: string }) => (
+          <AppContent currentPage={currentPage} />
+        )}
+      </Layout>
+    </ProtectedRoute>
   );
 };
 

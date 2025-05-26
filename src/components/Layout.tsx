@@ -1,8 +1,18 @@
 
 import { useState } from 'react';
 import { Sidebar, SidebarProvider, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { BarChart3, Users, TrendingUp, Database } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Database, LogOut, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface LayoutProps {
   children: (props: { currentPage: string }) => React.ReactNode;
@@ -12,11 +22,21 @@ const menuItems = [
   { title: 'Dashboard', icon: BarChart3, path: 'dashboard' },
   { title: 'Data Prospek', icon: Users, path: 'prospek' },
   { title: 'Laporan', icon: TrendingUp, path: 'laporan' },
-  { title: 'Data Master', icon: Database, path: 'master' },
+  { title: 'Data Master', icon: Database, path: 'master', adminOnly: true },
 ];
 
 export function Layout({ children }: LayoutProps) {
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const { profile, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    window.location.href = '/auth';
+  };
+
+  const filteredMenuItems = menuItems.filter(item => 
+    !item.adminOnly || profile?.role === 'admin'
+  );
 
   return (
     <SidebarProvider>
@@ -29,7 +49,7 @@ export function Layout({ children }: LayoutProps) {
             </div>
             
             <SidebarMenu className="p-4 space-y-2">
-              {menuItems.map((item) => (
+              {filteredMenuItems.map((item) => (
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton 
                     onClick={() => setCurrentPage(item.path)}
@@ -54,7 +74,7 @@ export function Layout({ children }: LayoutProps) {
             <SidebarTrigger className="mr-4" />
             <div className="flex-1">
               <h1 className="text-2xl font-semibold text-gray-900">
-                {menuItems.find(item => item.path === currentPage)?.title || 'Dashboard'}
+                {filteredMenuItems.find(item => item.path === currentPage)?.title || 'Dashboard'}
               </h1>
             </div>
             <div className="flex items-center gap-4">
@@ -67,6 +87,28 @@ export function Layout({ children }: LayoutProps) {
                   timeZone: 'Asia/Jakarta'
                 })}
               </div>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span className="hidden md:inline">{profile?.full_name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>
+                    <div>
+                      <p className="font-medium">{profile?.full_name}</p>
+                      <p className="text-sm text-gray-500 capitalize">{profile?.role?.replace('_', ' ')}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
 
