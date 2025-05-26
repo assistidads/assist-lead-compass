@@ -39,10 +39,10 @@ const kotaData = [
 ];
 
 const funnelData = [
-  { name: 'Total Prospek', value: 515 },
-  { name: 'Dihubungi', value: 412 },
-  { name: 'Tertarik', value: 206 },
-  { name: 'Leads', value: 142 },
+  { name: 'Total Prospek', value: 515, fill: '#3b82f6' },
+  { name: 'Dihubungi', value: 412, fill: '#10b981' },
+  { name: 'Tertarik', value: 206, fill: '#f59e0b' },
+  { name: 'Leads', value: 142, fill: '#ef4444' },
 ];
 
 const performaCSData = [
