@@ -43,6 +43,28 @@ export interface UserProfile {
   updated_at: string;
 }
 
+// Hardcoded Tipe Faskes data with localStorage persistence
+const getTipeFaskesFromStorage = (): DataMasterItem[] => {
+  const stored = localStorage.getItem('tipe_faskes_data');
+  if (stored) {
+    return JSON.parse(stored);
+  }
+  // Default data
+  const defaultData = [
+    { id: '1', nama: 'Rumah Sakit', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: '2', nama: 'Klinik', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: '3', nama: 'Puskesmas', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: '4', nama: 'Laboratorium', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: '5', nama: 'Apotek', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  ];
+  localStorage.setItem('tipe_faskes_data', JSON.stringify(defaultData));
+  return defaultData;
+};
+
+const saveTipeFaskesToStorage = (data: DataMasterItem[]) => {
+  localStorage.setItem('tipe_faskes_data', JSON.stringify(data));
+};
+
 export function useSupabaseData() {
   const { user, profile } = useAuth();
   const [prospekData, setProspekData] = useState<SupabaseProspek[]>([]);
@@ -168,14 +190,8 @@ export function useSupabaseData() {
       if (sumberLeadsError) throw sumberLeadsError;
       setSumberLeadsData(sumberLeadsData || []);
 
-      // Fetch tipe faskes from database
-      const { data: tipeFaskesData, error: tipeFaskesError } = await supabase
-        .from('tipe_faskes')
-        .select('*')
-        .order('nama');
-
-      if (tipeFaskesError) throw tipeFaskesError;
-      setTipeFaskesData(tipeFaskesData || []);
+      // Load tipe faskes from localStorage
+      setTipeFaskesData(getTipeFaskesFromStorage());
 
       // Fetch alasan bukan leads
       const { data: alasanBukanLeadsData, error: alasanBukanLeadsError } = await supabase
@@ -201,11 +217,10 @@ export function useSupabaseData() {
     if (!user) return;
 
     try {
-      const [layananRes, kodeAdsRes, sumberLeadsRes, tipeFaskesRes, alasanRes, usersRes] = await Promise.all([
+      const [layananRes, kodeAdsRes, sumberLeadsRes, alasanRes, usersRes] = await Promise.all([
         supabase.from('layanan_assist').select('*').order('nama'),
         supabase.from('kode_ads').select('*').order('kode'),
         supabase.from('sumber_leads').select('*').order('nama'),
-        supabase.from('tipe_faskes').select('*').order('nama'),
         supabase.from('alasan_bukan_leads').select('*').order('alasan'),
         supabase.from('profiles').select('*').order('full_name')
       ]);
@@ -213,12 +228,14 @@ export function useSupabaseData() {
       if (layananRes.data) setLayananData(layananRes.data);
       if (kodeAdsRes.data) setKodeAdsData(kodeAdsRes.data);
       if (sumberLeadsRes.data) setSumberLeadsData(sumberLeadsRes.data);
-      if (tipeFaskesRes.data) setTipeFaskesData(tipeFaskesRes.data);
       if (alasanRes.data) setAlasanBukanLeadsData(alasanRes.data);
       if (usersRes.data) {
         console.log('Setting users data from dropdown fetch:', usersRes.data);
         setUsersData(usersRes.data);
       }
+
+      // Load tipe faskes from localStorage
+      setTipeFaskesData(getTipeFaskesFromStorage());
 
     } catch (error) {
       console.error('Error fetching dropdown data:', error);
@@ -340,6 +357,41 @@ export function useSupabaseData() {
     }
   };
 
+  // CRUD operations for Tipe Faskes (localStorage based)
+  const createTipeFaskes = (data: { nama: string }) => {
+    const currentData = getTipeFaskesFromStorage();
+    const newItem: DataMasterItem = {
+      id: Date.now().toString(),
+      nama: data.nama,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    const updatedData = [...currentData, newItem];
+    saveTipeFaskesToStorage(updatedData);
+    setTipeFaskesData(updatedData);
+    return newItem;
+  };
+
+  const updateTipeFaskes = (id: string, data: { nama: string }) => {
+    const currentData = getTipeFaskesFromStorage();
+    const updatedData = currentData.map(item => 
+      item.id === id 
+        ? { ...item, nama: data.nama, updated_at: new Date().toISOString() }
+        : item
+    );
+    saveTipeFaskesToStorage(updatedData);
+    setTipeFaskesData(updatedData);
+    return updatedData.find(item => item.id === id);
+  };
+
+  const deleteTipeFaskes = (id: string) => {
+    const currentData = getTipeFaskesFromStorage();
+    const updatedData = currentData.filter(item => item.id !== id);
+    saveTipeFaskesToStorage(updatedData);
+    setTipeFaskesData(updatedData);
+    return true;
+  };
+
   useEffect(() => {
     if (user && profile) {
       console.log('useEffect triggered. User:', user.id, 'Profile role:', profile.role);
@@ -366,6 +418,9 @@ export function useSupabaseData() {
     createProspek,
     updateProspek,
     deleteProspek,
+    createTipeFaskes,
+    updateTipeFaskes,
+    deleteTipeFaskes,
     refetchData: () => {
       console.log('refetchData called. Profile role:', profile?.role);
       fetchProspekData();

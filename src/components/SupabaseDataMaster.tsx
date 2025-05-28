@@ -14,7 +14,18 @@ import { SupabaseDataMasterDeleteDialog } from './SupabaseDataMasterDeleteDialog
 type DataType = 'user' | 'layanan' | 'kode-ads' | 'sumber-leads' | 'tipe-faskes' | 'bukan-leads';
 
 export function SupabaseDataMaster() {
-  const { layananData, kodeAdsData, sumberLeadsData, tipeFaskesData, alasanBukanLeadsData, usersData, refetchData } = useSupabaseData();
+  const { 
+    layananData, 
+    kodeAdsData, 
+    sumberLeadsData, 
+    tipeFaskesData, 
+    alasanBukanLeadsData, 
+    usersData, 
+    refetchData,
+    createTipeFaskes,
+    updateTipeFaskes,
+    deleteTipeFaskes
+  } = useSupabaseData();
   const [activeTab, setActiveTab] = useState<DataType>('user');
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,6 +55,24 @@ export function SupabaseDataMaster() {
       if (activeTab === 'user') {
         // User handling is done in the modal
         refetchData();
+        return;
+      }
+
+      if (activeTab === 'tipe-faskes') {
+        // Handle tipe faskes with localStorage
+        if (modalMode === 'add') {
+          createTipeFaskes(data);
+          toast({
+            title: "Berhasil",
+            description: "Data berhasil ditambahkan",
+          });
+        } else {
+          updateTipeFaskes(selectedItem.id, data);
+          toast({
+            title: "Berhasil",
+            description: "Data berhasil diupdate",
+          });
+        }
         return;
       }
 
@@ -95,6 +124,9 @@ export function SupabaseDataMaster() {
           .eq('id', selectedItem.id);
         
         if (error) throw error;
+      } else if (activeTab === 'tipe-faskes') {
+        // Handle tipe faskes deletion with localStorage
+        deleteTipeFaskes(selectedItem.id);
       } else {
         const tableName = getTableName(activeTab);
         const { error } = await supabase
@@ -115,7 +147,9 @@ export function SupabaseDataMaster() {
       setIsDeleteDialogOpen(false);
       setSelectedItem(null);
       
-      refetchData();
+      if (activeTab !== 'tipe-faskes') {
+        refetchData();
+      }
     } catch (error) {
       console.error('Error deleting data:', error);
       toast({
@@ -134,7 +168,6 @@ export function SupabaseDataMaster() {
       case 'layanan': return 'layanan_assist';
       case 'kode-ads': return 'kode_ads';
       case 'sumber-leads': return 'sumber_leads';
-      case 'tipe-faskes': return 'tipe_faskes';
       case 'bukan-leads': return 'alasan_bukan_leads';
       default: return '';
     }
