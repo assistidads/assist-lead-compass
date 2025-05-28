@@ -296,10 +296,9 @@ export function SupabaseDataMaster() {
     }
   };
 
+  // Semua tab bisa edit/delete kecuali tidak ada batasan
   const canEditDelete = (tab: string) => {
-    // Only allow edit/delete for layanan, kode-ads, sumber-leads, bukan-leads and for admins
-    if (profile?.role !== 'admin') return false;
-    return ['layanan', 'kode-ads', 'sumber-leads', 'bukan-leads'].includes(tab);
+    return profile?.role === 'admin';
   };
 
   const renderTable = (data: any[], columns: string[], title: string, type: string) => (

@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -14,6 +14,7 @@ interface LaporanProps {
 
 export function Laporan({ reportType }: LaporanProps) {
   const { prospekData, sumberLeadsData, kodeAdsData, layananData, loading } = useSupabaseData();
+  const chartRef = useRef<HTMLDivElement>(null);
 
   // Data untuk chart sumber leads
   const sumberLeadsChartData = useMemo(() => {
@@ -76,6 +77,34 @@ export function Laporan({ reportType }: LaporanProps) {
       ctr: data.prospek > 0 ? parseFloat(((data.leads / data.prospek) * 100).toFixed(1)) : 0
     }));
   }, [prospekData]);
+
+  const downloadChartAsPNG = () => {
+    if (chartRef.current) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const svg = chartRef.current.querySelector('svg');
+      
+      if (svg && ctx) {
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const img = new Image();
+        
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+          
+          const link = document.createElement('a');
+          link.download = `chart-${reportType}-${Date.now()}.png`;
+          link.href = canvas.toDataURL();
+          link.click();
+        };
+        
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -185,63 +214,116 @@ export function Laporan({ reportType }: LaporanProps) {
     }
   };
 
+  const getCTRColor = (ctr: number) => {
+    if (ctr >= 30) return 'bg-green-100 text-green-800';
+    if (ctr >= 20) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
+  };
+
   const renderTable = () => {
     switch (reportType) {
       case 'sumber-leads':
         return (
-          <div className="space-y-2">
-            {sumberLeadsChartData.map((item, index) => (
-              <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="font-medium">{item.name}</span>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span>Prospek: {item.prospek}</span>
-                  <span>Leads: {item.leads}</span>
-                  <span>CTR: {item.ctr}%</span>
-                </div>
-              </div>
-            ))}
+          <div className="bg-white rounded-lg border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Tabel Sumber Leads</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Prospek</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Leads</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">CTR Leads</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sumberLeadsChartData.map((item, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{item.prospek}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{item.leads}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                          {item.ctr}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         );
       case 'kode-ads':
         return (
-          <div className="space-y-2">
-            {kodeAdsChartData.map((item, index) => (
-              <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="font-medium">{item.name}</span>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span>Prospek: {item.prospek}</span>
-                  <span>Leads: {item.leads}</span>
-                  <span>CTR: {item.ctr}%</span>
-                </div>
-              </div>
-            ))}
+          <div className="bg-white rounded-lg border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Tabel Kode Ads</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Prospek</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Leads</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">CTR Leads</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {kodeAdsChartData.map((item, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{item.prospek}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{item.leads}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                          {item.ctr}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         );
       case 'performa-cs':
         return (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">Nama CS</th>
-                  <th className="text-right py-2">Total Prospek</th>
-                  <th className="text-right py-2">Leads</th>
-                  <th className="text-right py-2">Bukan Leads</th>
-                  <th className="text-right py-2">CTR Leads</th>
-                </tr>
-              </thead>
-              <tbody>
-                {performaCSData.map((cs, index) => (
-                  <tr key={index} className="border-b">
-                    <td className="py-2 font-medium">{cs.name}</td>
-                    <td className="text-right py-2">{cs.prospek}</td>
-                    <td className="text-right py-2 text-green-600">{cs.leads}</td>
-                    <td className="text-right py-2 text-red-600">{cs.bukanLeads}</td>
-                    <td className="text-right py-2 font-medium">{cs.ctr}%</td>
+          <div className="bg-white rounded-lg border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Tabel Performa CS</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama CS</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total Prospek</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Leads</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Bukan Leads</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">CTR Leads</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {performaCSData.map((cs, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{cs.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{cs.prospek}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 text-center font-medium">{cs.leads}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 text-center font-medium">{cs.bukanLeads}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getCTRColor(cs.ctr)}`}>
+                          {cs.ctr}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         );
       default:
@@ -261,7 +343,7 @@ export function Laporan({ reportType }: LaporanProps) {
           <p className="text-gray-600">Analisis performa leads dan prospek</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={downloadChartAsPNG}>
             <Download className="h-4 w-4 mr-2" />
             PNG
           </Button>
@@ -278,18 +360,15 @@ export function Laporan({ reportType }: LaporanProps) {
             <CardTitle className="text-lg font-semibold text-gray-900">{getTitle()}</CardTitle>
           </CardHeader>
           <CardContent>
-            {renderChart()}
+            <div ref={chartRef}>
+              {renderChart()}
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white border border-gray-200">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900">{getSubtitle()}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {renderTable()}
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          {renderTable()}
+        </div>
       </div>
     </div>
   );
