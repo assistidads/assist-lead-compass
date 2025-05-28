@@ -5,12 +5,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CalendarIcon, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
 import { MetricCard } from './MetricCard';
+import { Laporan } from './Laporan';
 import { cn } from '@/lib/utils';
 
 export function SupabaseLaporan() {
@@ -20,6 +22,7 @@ export function SupabaseLaporan() {
   const [dateTo, setDateTo] = useState<Date>();
   const [sumberFilter, setSumberFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState('summary');
 
   // Filter data berdasarkan tanggal, sumber, dan status
   const filteredData = prospekData.filter(item => {
@@ -120,177 +123,216 @@ export function SupabaseLaporan() {
         </p>
       </div>
 
-      {/* Filter Section */}
-      <Card className="bg-white border border-gray-200">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900">Filter Laporan</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {/* Date From */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal Dari</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !dateFrom && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateFrom ? format(dateFrom, "PPP", { locale: id }) : "Pilih tanggal"}
+      {/* Tab Navigation */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="summary">Ringkasan</TabsTrigger>
+          <TabsTrigger value="sumber-leads">Sumber Leads</TabsTrigger>
+          <TabsTrigger value="kode-ads">Kode Ads</TabsTrigger>
+          <TabsTrigger value="layanan-assist">Layanan</TabsTrigger>
+          <TabsTrigger value="kota-kabupaten">Kota/Kabupaten</TabsTrigger>
+          <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+          <TabsTrigger value="performa-cs">Performa CS</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="summary" className="space-y-6">
+          {/* Filter Section */}
+          <Card className="bg-white border border-gray-200">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-900">Filter Laporan</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                {/* Date From */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal Dari</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !dateFrom && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateFrom ? format(dateFrom, "PPP", { locale: id }) : "Pilih tanggal"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={dateFrom}
+                        onSelect={setDateFrom}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Date To */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal Sampai</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !dateTo && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateTo ? format(dateTo, "PPP", { locale: id }) : "Pilih tanggal"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={dateTo}
+                        onSelect={setDateTo}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Sumber Leads Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Sumber Leads</label>
+                  <Select value={sumberFilter} onValueChange={setSumberFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Semua Sumber" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Sumber</SelectItem>
+                      {sumberLeadsData.map(sumber => (
+                        <SelectItem key={sumber.id} value={sumber.nama}>{sumber.nama}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Status Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Semua Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Status</SelectItem>
+                      <SelectItem value="Prospek">Prospek</SelectItem>
+                      <SelectItem value="Dihubungi">Dihubungi</SelectItem>
+                      <SelectItem value="Leads">Leads</SelectItem>
+                      <SelectItem value="Bukan Leads">Bukan Leads</SelectItem>
+                      <SelectItem value="On Going">On Going</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Export Button */}
+                <div className="flex items-end">
+                  <Button onClick={handleExport} className="w-full bg-green-600 hover:bg-green-700">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={dateFrom}
-                    onSelect={setDateFrom}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Date To */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal Sampai</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !dateTo && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateTo ? format(dateTo, "PPP", { locale: id }) : "Pilih tanggal"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={dateTo}
-                    onSelect={setDateTo}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Sumber Leads Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Sumber Leads</label>
-              <Select value={sumberFilter} onValueChange={setSumberFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Semua Sumber" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Sumber</SelectItem>
-                  {sumberLeadsData.map(sumber => (
-                    <SelectItem key={sumber.id} value={sumber.nama}>{sumber.nama}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Semua Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="Prospek">Prospek</SelectItem>
-                  <SelectItem value="Dihubungi">Dihubungi</SelectItem>
-                  <SelectItem value="Leads">Leads</SelectItem>
-                  <SelectItem value="Bukan Leads">Bukan Leads</SelectItem>
-                  <SelectItem value="On Going">On Going</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Export Button */}
-            <div className="flex items-end">
-              <Button onClick={handleExport} className="w-full bg-green-600 hover:bg-green-700">
-                <Download className="h-4 w-4 mr-2" />
-                Export CSV
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard
-          title="Total Prospek"
-          value={totalProspek}
-          change={0}
-          icon={undefined}
-        />
-        <MetricCard
-          title="Total Leads"
-          value={totalLeads}
-          change={0}
-          icon={undefined}
-        />
-        <MetricCard
-          title="Bukan Leads"
-          value={totalBukanLeads}
-          change={0}
-          icon={undefined}
-        />
-        <MetricCard
-          title="Conversion Rate"
-          value={`${conversionRate}%`}
-          change={0}
-          icon={undefined}
-        />
-      </div>
-
-      {/* Summary Table */}
-      <Card className="bg-white border border-gray-200">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900">
-            Ringkasan Data ({filteredData.length} prospek)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Breakdown by Sumber */}
-            <div>
-              <h4 className="font-medium text-gray-900 mb-3">Berdasarkan Sumber Leads</h4>
-              <div className="space-y-2">
-                {sumberLeadsBreakdown.map(item => (
-                  <div key={item.name} className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-sm text-gray-700">{item.name}</span>
-                    <span className="font-medium text-gray-900">{item.value}</span>
-                  </div>
-                ))}
+                </div>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Breakdown by Status */}
-            <div>
-              <h4 className="font-medium text-gray-900 mb-3">Berdasarkan Status</h4>
-              <div className="space-y-2">
-                {statusBreakdown.map(item => (
-                  <div key={item.name} className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-sm text-gray-700">{item.name}</span>
-                    <span className="font-medium text-gray-900">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {/* Metrics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <MetricCard
+              title="Total Prospek"
+              value={totalProspek}
+              change={0}
+              icon={undefined}
+            />
+            <MetricCard
+              title="Total Leads"
+              value={totalLeads}
+              change={0}
+              icon={undefined}
+            />
+            <MetricCard
+              title="Bukan Leads"
+              value={totalBukanLeads}
+              change={0}
+              icon={undefined}
+            />
+            <MetricCard
+              title="Conversion Rate"
+              value={`${conversionRate}%`}
+              change={0}
+              icon={undefined}
+            />
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Summary Table */}
+          <Card className="bg-white border border-gray-200">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-900">
+                Ringkasan Data ({filteredData.length} prospek)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Breakdown by Sumber */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Berdasarkan Sumber Leads</h4>
+                  <div className="space-y-2">
+                    {sumberLeadsBreakdown.map(item => (
+                      <div key={item.name} className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="text-sm text-gray-700">{item.name}</span>
+                        <span className="font-medium text-gray-900">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Breakdown by Status */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Berdasarkan Status</h4>
+                  <div className="space-y-2">
+                    {statusBreakdown.map(item => (
+                      <div key={item.name} className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="text-sm text-gray-700">{item.name}</span>
+                        <span className="font-medium text-gray-900">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="sumber-leads">
+          <Laporan reportType="sumber-leads" />
+        </TabsContent>
+
+        <TabsContent value="kode-ads">
+          <Laporan reportType="kode-ads" />
+        </TabsContent>
+
+        <TabsContent value="layanan-assist">
+          <Laporan reportType="layanan-assist" />
+        </TabsContent>
+
+        <TabsContent value="kota-kabupaten">
+          <Laporan reportType="kota-kabupaten" />
+        </TabsContent>
+
+        <TabsContent value="heatmap">
+          <Laporan reportType="heatmap" />
+        </TabsContent>
+
+        <TabsContent value="performa-cs">
+          <Laporan reportType="performa-cs" />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

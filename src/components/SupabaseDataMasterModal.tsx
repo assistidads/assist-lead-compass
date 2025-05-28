@@ -28,6 +28,7 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
         setFormData({
           full_name: '',
           email: '',
+          password: '',
           role: 'cs_support'
         });
       } else {
@@ -43,13 +44,20 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
       if (type === 'user') {
         // Handle user creation/update differently since it involves auth
         if (mode === 'add') {
-          // Generate a temporary password
-          const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
-          
+          // Validate password
+          if (!formData.password || formData.password.length < 6) {
+            toast({
+              title: "Error",
+              description: "Password harus minimal 6 karakter",
+              variant: "destructive",
+            });
+            return;
+          }
+
           // Create user using signup
           const { data: authData, error: authError } = await supabase.auth.signUp({
             email: formData.email,
-            password: tempPassword,
+            password: formData.password,
             options: {
               data: {
                 full_name: formData.full_name,
@@ -71,7 +79,7 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
           // Profile will be created automatically by trigger
           toast({
             title: "Berhasil",
-            description: `User berhasil ditambahkan dengan password sementara: ${tempPassword}`,
+            description: "User berhasil ditambahkan",
           });
         } else {
           // For editing, update the profile directly
@@ -131,6 +139,20 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
                 required
               />
             </div>
+            {mode === 'add' && (
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData?.password || ''}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                  minLength={6}
+                  placeholder="Minimal 6 karakter"
+                />
+              </div>
+            )}
             <div>
               <Label htmlFor="role">Role</Label>
               <Select value={formData?.role || ''} onValueChange={(value) => setFormData({ ...formData, role: value })}>
