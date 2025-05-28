@@ -9,6 +9,69 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      alasan_bukan_leads: {
+        Row: {
+          alasan: string
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          alasan: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          alasan?: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      kode_ads: {
+        Row: {
+          created_at: string | null
+          id: string
+          kode: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          kode: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          kode?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      layanan_assist: {
+        Row: {
+          created_at: string | null
+          id: string
+          nama: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          nama: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          nama?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -36,6 +99,139 @@ export type Database = {
         }
         Relationships: []
       }
+      prospek: {
+        Row: {
+          alasan_bukan_leads_id: string | null
+          created_at: string | null
+          created_by: string
+          id: string
+          id_ads: string | null
+          keterangan_bukan_leads: string | null
+          kode_ads_id: string | null
+          kota: string
+          layanan_assist_id: string | null
+          nama_faskes: string
+          nama_prospek: string
+          no_whatsapp: string
+          pic_leads_id: string | null
+          provinsi_id: string
+          provinsi_nama: string
+          status_leads: Database["public"]["Enums"]["status_leads"]
+          sumber_leads_id: string | null
+          tanggal_prospek: string
+          tipe_faskes: Database["public"]["Enums"]["tipe_faskes"]
+          updated_at: string | null
+        }
+        Insert: {
+          alasan_bukan_leads_id?: string | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          id_ads?: string | null
+          keterangan_bukan_leads?: string | null
+          kode_ads_id?: string | null
+          kota: string
+          layanan_assist_id?: string | null
+          nama_faskes: string
+          nama_prospek: string
+          no_whatsapp: string
+          pic_leads_id?: string | null
+          provinsi_id: string
+          provinsi_nama: string
+          status_leads: Database["public"]["Enums"]["status_leads"]
+          sumber_leads_id?: string | null
+          tanggal_prospek: string
+          tipe_faskes: Database["public"]["Enums"]["tipe_faskes"]
+          updated_at?: string | null
+        }
+        Update: {
+          alasan_bukan_leads_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          id_ads?: string | null
+          keterangan_bukan_leads?: string | null
+          kode_ads_id?: string | null
+          kota?: string
+          layanan_assist_id?: string | null
+          nama_faskes?: string
+          nama_prospek?: string
+          no_whatsapp?: string
+          pic_leads_id?: string | null
+          provinsi_id?: string
+          provinsi_nama?: string
+          status_leads?: Database["public"]["Enums"]["status_leads"]
+          sumber_leads_id?: string | null
+          tanggal_prospek?: string
+          tipe_faskes?: Database["public"]["Enums"]["tipe_faskes"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prospek_alasan_bukan_leads_id_fkey"
+            columns: ["alasan_bukan_leads_id"]
+            isOneToOne: false
+            referencedRelation: "alasan_bukan_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prospek_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prospek_kode_ads_id_fkey"
+            columns: ["kode_ads_id"]
+            isOneToOne: false
+            referencedRelation: "kode_ads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prospek_layanan_assist_id_fkey"
+            columns: ["layanan_assist_id"]
+            isOneToOne: false
+            referencedRelation: "layanan_assist"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prospek_pic_leads_id_fkey"
+            columns: ["pic_leads_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prospek_sumber_leads_id_fkey"
+            columns: ["sumber_leads_id"]
+            isOneToOne: false
+            referencedRelation: "sumber_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sumber_leads: {
+        Row: {
+          created_at: string | null
+          id: string
+          nama: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          nama: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          nama?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -50,6 +246,18 @@ export type Database = {
       }
     }
     Enums: {
+      status_leads:
+        | "Prospek"
+        | "Dihubungi"
+        | "Leads"
+        | "Bukan Leads"
+        | "On Going"
+      tipe_faskes:
+        | "Rumah Sakit"
+        | "Klinik"
+        | "Puskesmas"
+        | "Laboratorium"
+        | "Apotek"
       user_role: "admin" | "cs_support"
     }
     CompositeTypes: {
@@ -166,6 +374,20 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      status_leads: [
+        "Prospek",
+        "Dihubungi",
+        "Leads",
+        "Bukan Leads",
+        "On Going",
+      ],
+      tipe_faskes: [
+        "Rumah Sakit",
+        "Klinik",
+        "Puskesmas",
+        "Laboratorium",
+        "Apotek",
+      ],
       user_role: ["admin", "cs_support"],
     },
   },

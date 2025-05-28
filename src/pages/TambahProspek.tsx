@@ -1,6 +1,6 @@
 
 import { Layout } from '@/components/Layout';
-import { ProspekForm } from '@/components/ProspekForm';
+import { SupabaseProspekForm } from '@/components/SupabaseProspekForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -10,7 +10,10 @@ const TambahProspek = () => {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    console.log('Navigating back to data prospek');
+    navigate('/?tab=data-prospek');
+  };
+
+  const handleSuccess = () => {
     navigate('/?tab=data-prospek');
   };
 
@@ -30,7 +33,7 @@ const TambahProspek = () => {
               </Button>
               <h1 className="text-2xl font-semibold text-gray-900">Tambah Prospek Baru</h1>
             </div>
-            <ProspekForm />
+            <SupabaseProspekForm onSuccess={handleSuccess} />
           </div>
         )}
       </Layout>

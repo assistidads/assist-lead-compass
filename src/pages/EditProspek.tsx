@@ -1,6 +1,6 @@
 
 import { Layout } from '@/components/Layout';
-import { ProspekForm } from '@/components/ProspekForm';
+import { SupabaseProspekForm } from '@/components/SupabaseProspekForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -11,7 +11,10 @@ const EditProspek = () => {
   const { id } = useParams();
 
   const handleBack = () => {
-    console.log('Navigating back to data prospek from edit');
+    navigate('/?tab=data-prospek');
+  };
+
+  const handleSuccess = () => {
     navigate('/?tab=data-prospek');
   };
 
@@ -33,7 +36,7 @@ const EditProspek = () => {
                 Edit Prospek
               </h1>
             </div>
-            <ProspekForm isEdit={true} prospekId={id} />
+            <SupabaseProspekForm isEdit={true} prospekId={id} onSuccess={handleSuccess} />
           </div>
         )}
       </Layout>
