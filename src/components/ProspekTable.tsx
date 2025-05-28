@@ -1,10 +1,11 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ProspekFilter } from './ProspekFilter';
 import { ProspekFilterSummary } from './ProspekFilterSummary';
 import { ProspekDataTable } from './ProspekDataTable';
+import { ProspekForm } from './ProspekForm';
 
 const prospekData = [
   {
@@ -77,6 +78,7 @@ export function ProspekTable() {
   
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   // Get unique values for filter options
   const uniqueKodeAds = [...new Set(prospekData.map(item => item.kodeAds).filter(Boolean))];
@@ -164,10 +166,22 @@ export function ProspekTable() {
       {/* Header Actions */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Tambah Prospek
-          </Button>
+          <Sheet open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <SheetTrigger asChild>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Tambah Prospek
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full max-w-4xl overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>Tambah Prospek Baru</SheetTitle>
+              </SheetHeader>
+              <div className="mt-6">
+                <ProspekForm />
+              </div>
+            </SheetContent>
+          </Sheet>
           <h2 className="text-xl font-semibold text-gray-900">Data Prospek</h2>
         </div>
       </div>

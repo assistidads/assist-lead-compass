@@ -100,8 +100,8 @@ export function ProspekFilter({
       {/* Filter Content */}
       <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
         <CollapsibleContent>
-          <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-6 space-y-4 w-1/4">
+            <div className="space-y-4">
               {/* Kode Ads Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Kode Ads</label>
@@ -190,7 +190,7 @@ export function ProspekFilter({
 
             {/* Custom Date Range */}
             {periodeFilter === 'custom' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Tanggal Mulai</label>
                   <Input
@@ -211,11 +211,11 @@ export function ProspekFilter({
             )}
 
             {/* Action Buttons */}
-            <div className="flex gap-3 pt-4">
-              <Button onClick={resetFilters} variant="outline" className="flex-1">
+            <div className="flex flex-col gap-3 pt-4">
+              <Button onClick={resetFilters} variant="outline" className="w-full">
                 Reset Filter
               </Button>
-              <Button onClick={() => setIsFilterOpen(false)} className="flex-1 bg-blue-600 hover:bg-blue-700">
+              <Button onClick={() => setIsFilterOpen(false)} className="w-full bg-blue-600 hover:bg-blue-700">
                 Terapkan Filter
               </Button>
             </div>
