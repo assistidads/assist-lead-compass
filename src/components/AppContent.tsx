@@ -2,14 +2,17 @@
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Dashboard } from '@/components/Dashboard';
 import { SupabaseProspekTable } from '@/components/SupabaseProspekTable';
-import { DataMaster } from '@/components/DataMaster';
-import { Laporan } from '@/components/Laporan';
+import { SupabaseDataMaster } from '@/components/SupabaseDataMaster';
+import { SupabaseLaporan } from '@/components/SupabaseLaporan';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AppContentProps {
   currentPage: string;
 }
 
 const AppContent = ({ currentPage }: AppContentProps) => {
+  const { profile } = useAuth();
+
   return (
     <div className="space-y-6">
       <Tabs value={currentPage} className="space-y-6">
@@ -21,12 +24,14 @@ const AppContent = ({ currentPage }: AppContentProps) => {
           <SupabaseProspekTable />
         </TabsContent>
 
-        <TabsContent value="data-master">
-          <DataMaster />
-        </TabsContent>
+        {profile?.role === 'admin' && (
+          <TabsContent value="data-master">
+            <SupabaseDataMaster />
+          </TabsContent>
+        )}
 
         <TabsContent value="laporan">
-          <Laporan />
+          <SupabaseLaporan />
         </TabsContent>
       </Tabs>
     </div>

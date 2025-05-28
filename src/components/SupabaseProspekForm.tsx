@@ -37,27 +37,39 @@ export function SupabaseProspekForm({ isEdit = false, prospekId, onSuccess }: Su
     if (isEdit && prospekId && prospekData.length > 0) {
       const existingProspek = prospekData.find(p => p.id === prospekId);
       if (existingProspek) {
+        console.log('Loading existing prospek data for edit:', existingProspek);
+        
+        // Find the correct IDs for dropdown fields
+        const sumberLeadsId = sumberLeadsOptions.find(s => s.nama === existingProspek.sumber_leads?.nama)?.id || '';
+        const kodeAdsId = kodeAdsOptions.find(k => k.kode === existingProspek.kode_ads?.kode)?.id || '';
+        const layananAssistId = layananAssistOptions.find(l => l.nama === existingProspek.layanan_assist?.nama)?.id || '';
+        const alasanBukanLeadsId = alasanBukanLeadsOptions.find(a => a.alasan === existingProspek.alasan_bukan_leads?.alasan)?.id || '';
+        const picLeadsId = usersOptions.find(u => u.full_name === existingProspek.pic_leads?.full_name)?.id || '';
+        
+        // Find province ID from name
+        const provinsiId = provinces.find(p => p.name === existingProspek.provinsi_nama)?.id || '';
+
         setFormData({
           tanggal_prospek: existingProspek.tanggal_prospek,
-          sumber_leads_id: existingProspek.sumber_leads?.nama || '',
-          kode_ads_id: existingProspek.kode_ads?.kode || '',
+          sumber_leads_id: sumberLeadsId,
+          kode_ads_id: kodeAdsId,
           id_ads: existingProspek.id_ads || '',
           nama_prospek: existingProspek.nama_prospek,
           no_whatsapp: existingProspek.no_whatsapp,
           status_leads: existingProspek.status_leads,
-          alasan_bukan_leads_id: existingProspek.alasan_bukan_leads?.alasan || '',
+          alasan_bukan_leads_id: alasanBukanLeadsId,
           keterangan_bukan_leads: existingProspek.keterangan_bukan_leads || '',
-          layanan_assist_id: existingProspek.layanan_assist?.nama || '',
+          layanan_assist_id: layananAssistId,
           nama_faskes: existingProspek.nama_faskes,
           tipe_faskes: existingProspek.tipe_faskes,
-          provinsi_id: '', // Will be set based on provinsi_nama
+          provinsi_id: provinsiId,
           provinsi_nama: existingProspek.provinsi_nama,
           kota: existingProspek.kota,
-          pic_leads_id: existingProspek.pic_leads?.full_name || ''
+          pic_leads_id: picLeadsId
         });
       }
     }
-  }, [isEdit, prospekId, prospekData, setFormData]);
+  }, [isEdit, prospekId, prospekData, setFormData, sumberLeadsOptions, kodeAdsOptions, layananAssistOptions, alasanBukanLeadsOptions, usersOptions, provinces]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,11 +78,21 @@ export function SupabaseProspekForm({ isEdit = false, prospekId, onSuccess }: Su
       return;
     }
 
+    // Convert display IDs back to actual IDs for submission
+    const submissionData = {
+      ...formData,
+      sumber_leads_id: sumberLeadsOptions.find(s => s.id === formData.sumber_leads_id)?.id || null,
+      kode_ads_id: kodeAdsOptions.find(k => k.id === formData.kode_ads_id)?.id || null,
+      layanan_assist_id: layananAssistOptions.find(l => l.id === formData.layanan_assist_id)?.id || null,
+      alasan_bukan_leads_id: alasanBukanLeadsOptions.find(a => a.id === formData.alasan_bukan_leads_id)?.id || null,
+      pic_leads_id: usersOptions.find(u => u.id === formData.pic_leads_id)?.id || null,
+    };
+
     let result;
     if (isEdit && prospekId) {
-      result = await updateProspek(prospekId, formData);
+      result = await updateProspek(prospekId, submissionData);
     } else {
-      result = await createProspek(formData);
+      result = await createProspek(submissionData);
     }
 
     if (result && onSuccess) {
