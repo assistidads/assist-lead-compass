@@ -65,6 +65,7 @@ const prospekData = [
 
 export function ProspekTable() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [kodeAdsFilter, setKodeAdsFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -72,9 +73,19 @@ export function ProspekTable() {
   const filteredData = prospekData.filter(item => {
     const matchesSearch = item.namaProspek.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.namaFaskes.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesKodeAds = kodeAdsFilter === '' || 
+                          (item.kodeAds && item.kodeAds.toLowerCase().includes(kodeAdsFilter.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || item.statusLeads === statusFilter;
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesKodeAds && matchesStatus;
   });
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setKodeAdsFilter('');
+    setStatusFilter('all');
+  };
+
+  const hasActiveFilters = searchTerm !== '' || kodeAdsFilter !== '' || statusFilter !== 'all';
 
   return (
     <div className="space-y-6">
@@ -93,7 +104,7 @@ export function ProspekTable() {
           <CardTitle className="text-lg font-medium">Filter & Pencarian</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
@@ -101,6 +112,14 @@ export function ProspekTable() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
+              />
+            </div>
+
+            <div>
+              <Input
+                placeholder="Cari berdasarkan kode ads..."
+                value={kodeAdsFilter}
+                onChange={(e) => setKodeAdsFilter(e.target.value)}
               />
             </div>
             
@@ -129,15 +148,43 @@ export function ProspekTable() {
               </SelectContent>
             </Select>
 
-            <Button variant="outline" onClick={() => {
-              setSearchTerm('');
-              setStatusFilter('all');
-            }}>
+            <Button variant="outline" onClick={resetFilters}>
               Reset Filter
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Filter Results Summary */}
+      {hasActiveFilters && (
+        <Card className="bg-blue-50 border border-blue-200">
+          <CardContent className="py-3">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-blue-800">
+                <span className="font-medium">Hasil pencarian:</span> {filteredData.length} data ditemukan
+                {searchTerm && (
+                  <span className="ml-2">
+                    • Pencarian: "<span className="font-medium">{searchTerm}</span>"
+                  </span>
+                )}
+                {kodeAdsFilter && (
+                  <span className="ml-2">
+                    • Kode Ads: "<span className="font-medium">{kodeAdsFilter}</span>"
+                  </span>
+                )}
+                {statusFilter !== 'all' && (
+                  <span className="ml-2">
+                    • Status: "<span className="font-medium">{statusFilter}</span>"
+                  </span>
+                )}
+              </div>
+              <Button variant="ghost" size="sm" onClick={resetFilters} className="text-blue-600 hover:text-blue-700">
+                Hapus semua filter
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Data Table */}
       <Card className="bg-white border border-gray-200">
