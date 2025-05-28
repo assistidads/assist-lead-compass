@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -120,28 +119,76 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
     }));
   }, [prospekData]);
 
-  // Data untuk heatmap (contoh implementasi sederhana)
+  // Data untuk heatmap waktu/hari aktivitas prospek dan leads
   const heatmapData = useMemo(() => {
-    const provinsiCounts = prospekData.reduce((acc, item) => {
-      const provinsi = item.provinsi_nama;
-      if (!acc[provinsi]) {
-        acc[provinsi] = { prospek: 0, leads: 0 };
-      }
-      acc[provinsi].prospek++;
-      if (item.status_leads === 'Leads') {
-        acc[provinsi].leads++;
-      }
-      return acc;
-    }, {} as Record<string, { prospek: number; leads: number }>);
+    const daysOfWeek = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const hoursOfDay = Array.from({ length: 24 }, (_, i) => i);
 
-    return Object.entries(provinsiCounts).map(([provinsi, data]) => ({
-      name: provinsi,
-      value: data.prospek,
-      prospek: data.prospek,
-      leads: data.leads,
-      ctr: data.prospek > 0 ? parseFloat(((data.leads / data.prospek) * 100).toFixed(1)) : 0
-    })).filter(item => item.value > 0);
+    // Analisis berdasarkan hari dalam seminggu
+    const dayActivity = daysOfWeek.map(day => {
+      const dayProspekCount = prospekData.filter(item => {
+        const date = new Date(item.tanggal_prospek);
+        return daysOfWeek[date.getDay()] === day;
+      }).length;
+
+      const dayLeadsCount = prospekData.filter(item => {
+        const date = new Date(item.tanggal_prospek);
+        return daysOfWeek[date.getDay()] === day && item.status_leads === 'Leads';
+      }).length;
+
+      return {
+        name: day,
+        prospek: dayProspekCount,
+        leads: dayLeadsCount,
+        ctr: dayProspekCount > 0 ? parseFloat(((dayLeadsCount / dayProspekCount) * 100).toFixed(1)) : 0
+      };
+    });
+
+    // Analisis berdasarkan jam (menggunakan created_at sebagai estimasi waktu input)
+    const hourActivity = hoursOfDay.map(hour => {
+      const hourProspekCount = prospekData.filter(item => {
+        const date = new Date(item.created_at);
+        return date.getHours() === hour;
+      }).length;
+
+      const hourLeadsCount = prospekData.filter(item => {
+        const date = new Date(item.created_at);
+        return date.getHours() === hour && item.status_leads === 'Leads';
+      }).length;
+
+      return {
+        name: `${hour.toString().padStart(2, '0')}:00`,
+        prospek: hourProspekCount,
+        leads: hourLeadsCount,
+        ctr: hourProspekCount > 0 ? parseFloat(((hourLeadsCount / hourProspekCount) * 100).toFixed(1)) : 0
+      };
+    });
+
+    return { dayActivity, hourActivity };
   }, [prospekData]);
+
+  // Data untuk heatmap (contoh implementasi sederhana)
+  // const heatmapData = useMemo(() => {
+  //   const provinsiCounts = prospekData.reduce((acc, item) => {
+  //     const provinsi = item.provinsi_nama;
+  //     if (!acc[provinsi]) {
+  //       acc[provinsi] = { prospek: 0, leads: 0 };
+  //     }
+  //     acc[provinsi].prospek++;
+  //     if (item.status_leads === 'Leads') {
+  //       acc[provinsi].leads++;
+  //     }
+  //     return acc;
+  //   }, {} as Record<string, { prospek: number; leads: number }>);
+
+  //   return Object.entries(provinsiCounts).map(([provinsi, data]) => ({
+  //     name: provinsi,
+  //     value: data.prospek,
+  //     prospek: data.prospek,
+  //     leads: data.leads,
+  //     ctr: data.prospek > 0 ? parseFloat(((data.leads / data.prospek) * 100).toFixed(1)) : 0
+  //   })).filter(item => item.value > 0);
+  // }, [prospekData]);
 
   const downloadChartAsPNG = () => {
     if (chartRef.current) {
@@ -217,7 +264,8 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
         data = kotaKabupatenChartData;
         break;
       case 'heatmap':
-        data = heatmapData;
+        // Heatmap waktu aktivitas - tampilkan chart hari dalam seminggu
+        data = heatmapData.dayActivity;
         break;
       case 'performa-cs':
         data = performaCSData;
@@ -268,8 +316,8 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
         columns = ['Kota/Kabupaten', 'Prospek', 'Leads', 'CTR Leads'];
         break;
       case 'heatmap':
-        data = heatmapData;
-        columns = ['Provinsi', 'Prospek', 'Leads', 'CTR Leads'];
+        data = heatmapData.dayActivity;
+        columns = ['Hari', 'Prospek', 'Leads', 'CTR Leads'];
         break;
       case 'performa-cs':
         data = performaCSData;
@@ -287,7 +335,7 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
              activeTab === 'kode-ads' ? 'Tabel Kode Ads' :
              activeTab === 'layanan-assist' ? 'Tabel Layanan Assist' :
              activeTab === 'kota-kabupaten' ? 'Tabel Kota/Kabupaten' :
-             activeTab === 'heatmap' ? 'Tabel Heatmap Provinsi' :
+             activeTab === 'heatmap' ? 'Tabel Aktivitas Harian' :
              activeTab === 'performa-cs' ? 'Tabel Performa CS' : 'Tabel'}
           </h3>
         </div>
@@ -321,6 +369,41 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
             </tbody>
           </table>
         </div>
+
+        {/* Tambahan tabel untuk analisis jam pada heatmap */}
+        {activeTab === 'heatmap' && (
+          <div className="mt-6">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Aktivitas per Jam (24 Jam)</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-left">Jam</th>
+                    <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Prospek</th>
+                    <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Leads</th>
+                    <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">CTR Leads</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {heatmapData.hourActivity.filter(item => item.prospek > 0).map((item, index) => (
+                    <tr key={index} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                          {item.ctr}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -347,7 +430,7 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
       case 'kota-kabupaten':
         return 'Distribusi Kota/Kabupaten';
       case 'heatmap':
-        return 'Heatmap Provinsi';
+        return 'Heatmap Aktivitas Prospek & Leads';
       default:
         return 'Laporan';
     }

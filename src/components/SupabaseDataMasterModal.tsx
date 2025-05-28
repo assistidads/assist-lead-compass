@@ -54,7 +54,10 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
             return;
           }
 
-          // Create user using signup
+          // Get current session to restore later
+          const { data: currentSession } = await supabase.auth.getSession();
+
+          // Create user using signup with autoConfirm disabled to prevent auto-login
           const { data: authData, error: authError } = await supabase.auth.signUp({
             email: formData.email,
             password: formData.password,
@@ -74,6 +77,16 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
               variant: "destructive",
             });
             return;
+          }
+
+          // If the signup caused an auto-login, sign out immediately
+          if (authData.session) {
+            await supabase.auth.signOut();
+            
+            // Restore the original session if it existed
+            if (currentSession.session) {
+              await supabase.auth.setSession(currentSession.session);
+            }
           }
 
           // Profile will be created automatically by trigger
