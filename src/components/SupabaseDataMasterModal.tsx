@@ -2,11 +2,14 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { UserFormFields } from './modal-fields/UserFormFields';
+import { LayananFormFields } from './modal-fields/LayananFormFields';
+import { KodeAdsFormFields } from './modal-fields/KodeAdsFormFields';
+import { SumberLeadsFormFields } from './modal-fields/SumberLeadsFormFields';
+import { TipeFaskesFormFields } from './modal-fields/TipeFaskesFormFields';
+import { BukanLeadsFormFields } from './modal-fields/BukanLeadsFormFields';
 
 interface SupabaseDataMasterModalProps {
   isOpen: boolean;
@@ -132,115 +135,17 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
   const renderFields = () => {
     switch (type) {
       case 'user':
-        return (
-          <>
-            <div>
-              <Label htmlFor="full_name">Nama Lengkap</Label>
-              <Input
-                id="full_name"
-                value={formData?.full_name || ''}
-                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData?.email || ''}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
-            {mode === 'add' && (
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={formData?.password || ''}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
-                  minLength={6}
-                  placeholder="Minimal 6 karakter"
-                />
-              </div>
-            )}
-            <div>
-              <Label htmlFor="role">Role</Label>
-              <Select value={formData?.role || ''} onValueChange={(value) => setFormData({ ...formData, role: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="cs_support">CS Support</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </>
-        );
+        return <UserFormFields formData={formData} setFormData={setFormData} mode={mode} />;
       case 'layanan':
-        return (
-          <div>
-            <Label htmlFor="nama">Layanan</Label>
-            <Input
-              id="nama"
-              value={formData?.nama || ''}
-              onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-              required
-            />
-          </div>
-        );
+        return <LayananFormFields formData={formData} setFormData={setFormData} />;
       case 'kode-ads':
-        return (
-          <div>
-            <Label htmlFor="kode">Kode Ads</Label>
-            <Input
-              id="kode"
-              value={formData?.kode || ''}
-              onChange={(e) => setFormData({ ...formData, kode: e.target.value })}
-              required
-            />
-          </div>
-        );
+        return <KodeAdsFormFields formData={formData} setFormData={setFormData} />;
       case 'sumber-leads':
-        return (
-          <div>
-            <Label htmlFor="nama">Sumber Leads</Label>
-            <Input
-              id="nama"
-              value={formData?.nama || ''}
-              onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-              required
-            />
-          </div>
-        );
+        return <SumberLeadsFormFields formData={formData} setFormData={setFormData} />;
       case 'tipe-faskes':
-        return (
-          <div>
-            <Label htmlFor="nama">Tipe Faskes</Label>
-            <Input
-              id="nama"
-              value={formData?.nama || ''}
-              onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-              required
-            />
-          </div>
-        );
+        return <TipeFaskesFormFields formData={formData} setFormData={setFormData} />;
       case 'bukan-leads':
-        return (
-          <div>
-            <Label htmlFor="alasan">Alasan Bukan Leads</Label>
-            <Input
-              id="alasan"
-              value={formData?.alasan || ''}
-              onChange={(e) => setFormData({ ...formData, alasan: e.target.value })}
-              required
-            />
-          </div>
-        );
+        return <BukanLeadsFormFields formData={formData} setFormData={setFormData} />;
       default:
         return null;
     }
