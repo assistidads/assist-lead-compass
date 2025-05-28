@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,20 +12,24 @@ import { toast } from '@/hooks/use-toast';
 import { SupabaseDataMasterModal } from './SupabaseDataMasterModal';
 import { SupabaseDataMasterDeleteDialog } from './SupabaseDataMasterDeleteDialog';
 
-type DataType = 'user' | 'layanan' | 'kode-ads' | 'sumber-leads' | 'tipe-faskes' | 'bukan-leads';
+type DataType = 'user' | 'layanan' | 'kode-ads' | 'sumber-leads' | 'tipe-faskes' | 'status-leads' | 'bukan-leads';
 
 export function SupabaseDataMaster() {
   const { 
     layananData, 
     kodeAdsData, 
     sumberLeadsData, 
-    tipeFaskesData, 
+    tipeFaskesData,
+    statusLeadsData,
     alasanBukanLeadsData, 
     usersData, 
     refetchData,
     createTipeFaskes,
     updateTipeFaskes,
-    deleteTipeFaskes
+    deleteTipeFaskes,
+    createStatusLeads,
+    updateStatusLeads,
+    deleteStatusLeads
   } = useSupabaseData();
   const [activeTab, setActiveTab] = useState<DataType>('user');
   const [searchTerm, setSearchTerm] = useState('');
@@ -68,6 +73,24 @@ export function SupabaseDataMaster() {
           });
         } else {
           updateTipeFaskes(selectedItem.id, data);
+          toast({
+            title: "Berhasil",
+            description: "Data berhasil diupdate",
+          });
+        }
+        return;
+      }
+
+      if (activeTab === 'status-leads') {
+        // Handle status leads with localStorage
+        if (modalMode === 'add') {
+          createStatusLeads(data);
+          toast({
+            title: "Berhasil",
+            description: "Data berhasil ditambahkan",
+          });
+        } else {
+          updateStatusLeads(selectedItem.id, data);
           toast({
             title: "Berhasil",
             description: "Data berhasil diupdate",
@@ -127,6 +150,9 @@ export function SupabaseDataMaster() {
       } else if (activeTab === 'tipe-faskes') {
         // Handle tipe faskes deletion with localStorage
         deleteTipeFaskes(selectedItem.id);
+      } else if (activeTab === 'status-leads') {
+        // Handle status leads deletion with localStorage
+        deleteStatusLeads(selectedItem.id);
       } else {
         const tableName = getTableName(activeTab);
         const { error } = await supabase
@@ -147,7 +173,7 @@ export function SupabaseDataMaster() {
       setIsDeleteDialogOpen(false);
       setSelectedItem(null);
       
-      if (activeTab !== 'tipe-faskes') {
+      if (activeTab !== 'tipe-faskes' && activeTab !== 'status-leads') {
         refetchData();
       }
     } catch (error) {
@@ -180,6 +206,7 @@ export function SupabaseDataMaster() {
       case 'kode-ads': return kodeAdsData;
       case 'sumber-leads': return sumberLeadsData;
       case 'tipe-faskes': return tipeFaskesData;
+      case 'status-leads': return statusLeadsData;
       case 'bukan-leads': return alasanBukanLeadsData;
       default: return [];
     }
@@ -212,6 +239,7 @@ export function SupabaseDataMaster() {
     { id: 'kode-ads' as DataType, label: 'Kode Ads' },
     { id: 'sumber-leads' as DataType, label: 'Sumber Leads' },
     { id: 'tipe-faskes' as DataType, label: 'Tipe Faskes' },
+    { id: 'status-leads' as DataType, label: 'Status Leads' },
     { id: 'bukan-leads' as DataType, label: 'Bukan Leads' }
   ];
 

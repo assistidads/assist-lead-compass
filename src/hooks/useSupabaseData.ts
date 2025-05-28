@@ -65,6 +65,28 @@ const saveTipeFaskesToStorage = (data: DataMasterItem[]) => {
   localStorage.setItem('tipe_faskes_data', JSON.stringify(data));
 };
 
+// Hardcoded Status Leads data with localStorage persistence
+const getStatusLeadsFromStorage = (): DataMasterItem[] => {
+  const stored = localStorage.getItem('status_leads_data');
+  if (stored) {
+    return JSON.parse(stored);
+  }
+  // Default data
+  const defaultData = [
+    { id: '1', nama: 'Prospek', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: '2', nama: 'Dihubungi', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: '3', nama: 'Leads', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: '4', nama: 'Bukan Leads', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: '5', nama: 'On Going', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  ];
+  localStorage.setItem('status_leads_data', JSON.stringify(defaultData));
+  return defaultData;
+};
+
+const saveStatusLeadsToStorage = (data: DataMasterItem[]) => {
+  localStorage.setItem('status_leads_data', JSON.stringify(data));
+};
+
 export function useSupabaseData() {
   const { user, profile } = useAuth();
   const [prospekData, setProspekData] = useState<SupabaseProspek[]>([]);
@@ -72,6 +94,7 @@ export function useSupabaseData() {
   const [kodeAdsData, setKodeAdsData] = useState<DataMasterItem[]>([]);
   const [sumberLeadsData, setSumberLeadsData] = useState<DataMasterItem[]>([]);
   const [tipeFaskesData, setTipeFaskesData] = useState<DataMasterItem[]>([]);
+  const [statusLeadsData, setStatusLeadsData] = useState<DataMasterItem[]>([]);
   const [alasanBukanLeadsData, setAlasanBukanLeadsData] = useState<DataMasterItem[]>([]);
   const [usersData, setUsersData] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -392,11 +415,49 @@ export function useSupabaseData() {
     return true;
   };
 
+  // CRUD operations for Status Leads (localStorage based)
+  const createStatusLeads = (data: { nama: string }) => {
+    const currentData = getStatusLeadsFromStorage();
+    const newItem: DataMasterItem = {
+      id: Date.now().toString(),
+      nama: data.nama,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    const updatedData = [...currentData, newItem];
+    saveStatusLeadsToStorage(updatedData);
+    setStatusLeadsData(updatedData);
+    return newItem;
+  };
+
+  const updateStatusLeads = (id: string, data: { nama: string }) => {
+    const currentData = getStatusLeadsFromStorage();
+    const updatedData = currentData.map(item => 
+      item.id === id 
+        ? { ...item, nama: data.nama, updated_at: new Date().toISOString() }
+        : item
+    );
+    saveStatusLeadsToStorage(updatedData);
+    setStatusLeadsData(updatedData);
+    return updatedData.find(item => item.id === id);
+  };
+
+  const deleteStatusLeads = (id: string) => {
+    const currentData = getStatusLeadsFromStorage();
+    const updatedData = currentData.filter(item => item.id !== id);
+    saveStatusLeadsToStorage(updatedData);
+    setStatusLeadsData(updatedData);
+    return true;
+  };
+
   useEffect(() => {
     if (user && profile) {
       console.log('useEffect triggered. User:', user.id, 'Profile role:', profile.role);
       fetchProspekData();
       fetchMasterDataForDropdowns();
+      
+      // Load status leads from localStorage
+      setStatusLeadsData(getStatusLeadsFromStorage());
       
       // Force fetch users data for admin
       if (profile.role === 'admin') {
@@ -412,6 +473,7 @@ export function useSupabaseData() {
     kodeAdsData,
     sumberLeadsData,
     tipeFaskesData,
+    statusLeadsData,
     alasanBukanLeadsData,
     usersData,
     loading,
@@ -421,10 +483,14 @@ export function useSupabaseData() {
     createTipeFaskes,
     updateTipeFaskes,
     deleteTipeFaskes,
+    createStatusLeads,
+    updateStatusLeads,
+    deleteStatusLeads,
     refetchData: () => {
       console.log('refetchData called. Profile role:', profile?.role);
       fetchProspekData();
       fetchMasterDataForDropdowns();
+      setStatusLeadsData(getStatusLeadsFromStorage());
       if (profile?.role === 'admin') {
         fetchMasterData();
         fetchUsersData();

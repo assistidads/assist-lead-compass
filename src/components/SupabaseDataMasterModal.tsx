@@ -9,13 +9,14 @@ import { LayananFormFields } from './modal-fields/LayananFormFields';
 import { KodeAdsFormFields } from './modal-fields/KodeAdsFormFields';
 import { SumberLeadsFormFields } from './modal-fields/SumberLeadsFormFields';
 import { TipeFaskesFormFields } from './modal-fields/TipeFaskesFormFields';
+import { StatusLeadsFormFields } from './modal-fields/StatusLeadsFormFields';
 import { BukanLeadsFormFields } from './modal-fields/BukanLeadsFormFields';
 
 interface SupabaseDataMasterModalProps {
   isOpen: boolean;
   onClose: () => void;
   data: any;
-  type: 'user' | 'layanan' | 'kode-ads' | 'sumber-leads' | 'tipe-faskes' | 'bukan-leads';
+  type: 'user' | 'layanan' | 'kode-ads' | 'sumber-leads' | 'tipe-faskes' | 'status-leads' | 'bukan-leads';
   mode: 'add' | 'edit';
   onSave: (data: any) => void;
 }
@@ -144,6 +145,8 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
         return <SumberLeadsFormFields formData={formData} setFormData={setFormData} />;
       case 'tipe-faskes':
         return <TipeFaskesFormFields formData={formData} setFormData={setFormData} />;
+      case 'status-leads':
+        return <StatusLeadsFormFields formData={formData} setFormData={setFormData} />;
       case 'bukan-leads':
         return <BukanLeadsFormFields formData={formData} setFormData={setFormData} />;
       default:
@@ -158,6 +161,7 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
       'kode-ads': 'Kode Ads',
       'sumber-leads': 'Sumber Leads',
       'tipe-faskes': 'Tipe Faskes',
+      'status-leads': 'Status Leads',
       'bukan-leads': 'Bukan Leads'
     };
     return `${mode === 'add' ? 'Tambah' : 'Edit'} ${typeNames[type]}`;
