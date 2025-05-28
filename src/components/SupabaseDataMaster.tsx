@@ -297,7 +297,7 @@ export function SupabaseDataMaster() {
   };
 
   const canEditDelete = (tab: string) => {
-    // Only allow edit/delete for certain tabs and for admins
+    // Only allow edit/delete for layanan, kode-ads, sumber-leads, bukan-leads and for admins
     if (profile?.role !== 'admin') return false;
     return ['layanan', 'kode-ads', 'sumber-leads', 'bukan-leads'].includes(tab);
   };

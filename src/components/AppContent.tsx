@@ -21,44 +21,36 @@ export default function AppContent({ currentPage }: AppContentProps) {
         return <SupabaseProspekTable />;
       case 'laporan':
         return (
-          <Tabs defaultValue="analisis" className="space-y-6">
+          <Tabs defaultValue="sumber-leads" className="space-y-6">
             <TabsList>
-              <TabsTrigger value="analisis">Analisis & Chart</TabsTrigger>
-              <TabsTrigger value="data-real">Data Real</TabsTrigger>
-              <TabsTrigger value="user">User</TabsTrigger>
-              <TabsTrigger value="layanan">Layanan</TabsTrigger>
-              <TabsTrigger value="kode-ads">Kode Ads</TabsTrigger>
               <TabsTrigger value="sumber-leads">Sumber Leads</TabsTrigger>
-              <TabsTrigger value="tipe-faskes">Tipe Faskes</TabsTrigger>
-              <TabsTrigger value="status-leads">Status Leads</TabsTrigger>
-              <TabsTrigger value="bukan-leads">Bukan Leads</TabsTrigger>
+              <TabsTrigger value="kode-ads">Kode Ads</TabsTrigger>
+              <TabsTrigger value="layanan-assist">Layanan Assist</TabsTrigger>
+              <TabsTrigger value="kota-kabupaten">Kota/Kabupaten</TabsTrigger>
+              <TabsTrigger value="funnel-konversi">Funnel Konversi</TabsTrigger>
+              <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+              <TabsTrigger value="performa-cs">Performa CS</TabsTrigger>
             </TabsList>
-            <TabsContent value="analisis">
-              <Laporan />
-            </TabsContent>
-            <TabsContent value="data-real">
-              <SupabaseLaporan />
-            </TabsContent>
-            <TabsContent value="user">
-              <SupabaseDataMaster />
-            </TabsContent>
-            <TabsContent value="layanan">
-              <SupabaseDataMaster />
+            <TabsContent value="sumber-leads">
+              <Laporan reportType="sumber-leads" />
             </TabsContent>
             <TabsContent value="kode-ads">
-              <SupabaseDataMaster />
+              <Laporan reportType="kode-ads" />
             </TabsContent>
-            <TabsContent value="sumber-leads">
-              <SupabaseDataMaster />
+            <TabsContent value="layanan-assist">
+              <Laporan reportType="layanan" />
             </TabsContent>
-            <TabsContent value="tipe-faskes">
-              <SupabaseDataMaster />
+            <TabsContent value="kota-kabupaten">
+              <Laporan reportType="kota-kabupaten" />
             </TabsContent>
-            <TabsContent value="status-leads">
-              <SupabaseDataMaster />
+            <TabsContent value="funnel-konversi">
+              <Laporan reportType="funnel" />
             </TabsContent>
-            <TabsContent value="bukan-leads">
-              <SupabaseDataMaster />
+            <TabsContent value="heatmap">
+              <Laporan reportType="heatmap" />
+            </TabsContent>
+            <TabsContent value="performa-cs">
+              <Laporan reportType="performa-cs" />
             </TabsContent>
           </Tabs>
         );
