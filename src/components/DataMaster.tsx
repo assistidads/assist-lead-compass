@@ -50,6 +50,7 @@ const statusLeadsData = [
   { id: 2, status: 'Dihubungi' },
   { id: 3, status: 'Leads' },
   { id: 4, status: 'Bukan Leads' },
+  { id: 5, status: 'On Going' },
 ];
 
 const bukanLeadsData = [
