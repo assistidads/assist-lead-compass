@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -68,6 +69,7 @@ const prospekData: ProspekData[] = [
 export function ProspekTable() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
   
   // Filter states
   const [kodeAdsFilter, setKodeAdsFilter] = useState('all');
@@ -162,6 +164,10 @@ export function ProspekTable() {
     return count;
   };
 
+  const handleDataChange = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Actions */}
@@ -223,11 +229,13 @@ export function ProspekTable() {
 
       {/* Data Table */}
       <ProspekDataTable
+        key={refreshKey}
         filteredData={filteredData}
         totalData={prospekData.length}
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
         itemsPerPage={itemsPerPage}
+        onDataChange={handleDataChange}
       />
     </div>
   );
