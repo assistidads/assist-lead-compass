@@ -408,40 +408,55 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
                   <tr key={index} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {item.isOrganik && item.organikBreakdown && item.organikBreakdown.length > 0 ? (
-                        <Accordion type="single" collapsible className="w-full">
-                          <AccordionItem value="organik" className="border-none">
-                            <AccordionTrigger className="hover:no-underline p-0 font-medium text-gray-900">
-                              {item.name}
-                            </AccordionTrigger>
-                            <AccordionContent className="pt-2">
-                              <div className="space-y-1">
-                                {item.organikBreakdown.map((breakdown, bIndex) => (
-                                  <div key={bIndex} className="text-xs text-gray-600 flex justify-between items-center py-1 border-b border-gray-100 last:border-b-0">
-                                    <span>{breakdown.name}</span>
-                                    <div className="flex gap-4">
-                                      <span>{breakdown.prospek}</span>
-                                      <span>{breakdown.leads}</span>
-                                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getCTRColor(breakdown.ctr)}`}>
-                                        {breakdown.ctr}%
-                                      </span>
-                                    </div>
+                        <div className="w-full">
+                          <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="organik" className="border-none">
+                              <AccordionTrigger className="hover:no-underline p-0 font-medium text-gray-900">
+                                <div className="flex items-center justify-between w-full">
+                                  <span>{item.name}</span>
+                                  <div className="flex items-center gap-6 text-center">
+                                    <span className="w-16">{item.prospek}</span>
+                                    <span className="w-16">{item.leads}</span>
+                                    <span className={`inline-flex px-3 py-1 text-xs rounded-full w-20 justify-center ${getCTRColor(item.ctr)}`}>
+                                      {item.ctr}%
+                                    </span>
                                   </div>
-                                ))}
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        </Accordion>
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent className="pt-2 pl-4">
+                                <div className="space-y-2">
+                                  {item.organikBreakdown.map((breakdown, bIndex) => (
+                                    <div key={bIndex} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                                      <span className="text-sm text-gray-600">{breakdown.name}</span>
+                                      <div className="flex items-center gap-6 text-center">
+                                        <span className="w-16 text-sm text-gray-700">{breakdown.prospek}</span>
+                                        <span className="w-16 text-sm text-gray-700">{breakdown.leads}</span>
+                                        <span className={`inline-flex px-2 py-1 text-xs rounded-full w-20 justify-center ${getCTRColor(breakdown.ctr)}`}>
+                                          {breakdown.ctr}%
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
+                        </div>
                       ) : (
                         item.name
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
-                        {item.ctr}%
-                      </span>
-                    </td>
+                    {!item.isOrganik && (
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                            {item.ctr}%
+                          </span>
+                        </td>
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -474,40 +489,55 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
                   <tr key={index} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {item.idAdsBreakdown && item.idAdsBreakdown.length > 0 ? (
-                        <Accordion type="single" collapsible className="w-full">
-                          <AccordionItem value={`kode-${index}`} className="border-none">
-                            <AccordionTrigger className="hover:no-underline p-0 font-medium text-gray-900">
-                              {item.name}
-                            </AccordionTrigger>
-                            <AccordionContent className="pt-2">
-                              <div className="space-y-1">
-                                {item.idAdsBreakdown.map((breakdown, bIndex) => (
-                                  <div key={bIndex} className="text-xs text-gray-600 flex justify-between items-center py-1 border-b border-gray-100 last:border-b-0">
-                                    <span className="font-medium">ID: {breakdown.idAds}</span>
-                                    <div className="flex gap-4">
-                                      <span>{breakdown.prospek}</span>
-                                      <span>{breakdown.leads}</span>
-                                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getCTRColor(breakdown.ctr)}`}>
-                                        {breakdown.ctr}%
-                                      </span>
-                                    </div>
+                        <div className="w-full">
+                          <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value={`kode-${index}`} className="border-none">
+                              <AccordionTrigger className="hover:no-underline p-0 font-medium text-gray-900">
+                                <div className="flex items-center justify-between w-full">
+                                  <span>{item.name}</span>
+                                  <div className="flex items-center gap-6 text-center">
+                                    <span className="w-16">{item.prospek}</span>
+                                    <span className="w-16">{item.leads}</span>
+                                    <span className={`inline-flex px-3 py-1 text-xs rounded-full w-20 justify-center ${getCTRColor(item.ctr)}`}>
+                                      {item.ctr}%
+                                    </span>
                                   </div>
-                                ))}
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        </Accordion>
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent className="pt-2 pl-4">
+                                <div className="space-y-2">
+                                  {item.idAdsBreakdown.map((breakdown, bIndex) => (
+                                    <div key={bIndex} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                                      <span className="text-sm text-gray-600 font-medium">ID: {breakdown.idAds}</span>
+                                      <div className="flex items-center gap-6 text-center">
+                                        <span className="w-16 text-sm text-gray-700">{breakdown.prospek}</span>
+                                        <span className="w-16 text-sm text-gray-700">{breakdown.leads}</span>
+                                        <span className={`inline-flex px-2 py-1 text-xs rounded-full w-20 justify-center ${getCTRColor(breakdown.ctr)}`}>
+                                          {breakdown.ctr}%
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
+                        </div>
                       ) : (
                         item.name
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
-                        {item.ctr}%
-                      </span>
-                    </td>
+                    {(!item.idAdsBreakdown || item.idAdsBreakdown.length === 0) && (
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                            {item.ctr}%
+                          </span>
+                        </td>
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>
