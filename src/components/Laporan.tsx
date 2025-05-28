@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -7,144 +7,130 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, FunnelChart, Funnel, LabelList } from 'recharts';
-import { Download, FileText, Activity, ChevronDown } from 'lucide-react';
-
-// Sample data for reports - Updated sumber leads data
-const sumberLeadsDataRaw = [
-  { name: 'Meta Ads', value: 35, prospek: 180, leads: 63, ctr: 35 },
-  { name: 'Google Ads', value: 28, prospek: 150, leads: 42, ctr: 28 },
-  { name: 'Website Direct', value: 12, prospek: 60, leads: 12, ctr: 20 },
-  { name: 'Social Media', value: 8, prospek: 40, leads: 8, ctr: 20 },
-  { name: 'Referral', value: 17, prospek: 85, leads: 17, ctr: 20 },
-];
-
-// Calculate Organik data
-const organikSources = sumberLeadsDataRaw.filter(item => 
-  !item.name.toLowerCase().includes('ads') && 
-  !item.name.toLowerCase().includes('referral')
-);
-
-const organikTotal = organikSources.reduce((acc, item) => ({
-  prospek: acc.prospek + item.prospek,
-  leads: acc.leads + item.leads,
-  value: acc.value + item.value
-}), { prospek: 0, leads: 0, value: 0 });
-
-// Fix CTR calculation for Organik
-const organikCtr = organikTotal.prospek > 0 ? Math.round((organikTotal.leads / organikTotal.prospek) * 100 * 10) / 10 : 0;
-
-const organikData = {
-  name: 'Organik',
-  value: organikTotal.value,
-  prospek: organikTotal.prospek,
-  leads: organikTotal.leads,
-  ctr: organikCtr,
-  breakdown: organikSources
-};
-
-// Final sumber leads data with Organik at the top
-const sumberLeadsData = [
-  organikData,
-  ...sumberLeadsDataRaw.filter(item => 
-    item.name.toLowerCase().includes('ads') || 
-    item.name.toLowerCase().includes('referral')
-  )
-];
-
-const kodeAdsData = [
-  { 
-    name: 'META', 
-    value: 30, 
-    prospek: 150, 
-    leads: 45, 
-    ctr: 30,
-    idAds: [
-      { id: 'META-001', prospek: 80, leads: 25, ctr: 31.25 },
-      { id: 'META-002', prospek: 70, leads: 20, ctr: 28.57 }
-    ]
-  },
-  { 
-    name: 'GOOG', 
-    value: 25, 
-    prospek: 120, 
-    leads: 30, 
-    ctr: 25,
-    idAds: [
-      { id: 'GOOG-001', prospek: 60, leads: 15, ctr: 25 },
-      { id: 'GOOG-002', prospek: 40, leads: 10, ctr: 25 },
-      { id: 'GOOG-003', prospek: 20, leads: 5, ctr: 25 }
-    ]
-  },
-  { 
-    name: 'TKTK', 
-    value: 20, 
-    prospek: 90, 
-    leads: 18, 
-    ctr: 20,
-    idAds: [
-      { id: 'TKTK-001', prospek: 50, leads: 10, ctr: 20 },
-      { id: 'TKTK-002', prospek: 40, leads: 8, ctr: 20 }
-    ]
-  },
-  { 
-    name: 'FB01', 
-    value: 15, 
-    prospek: 75, 
-    leads: 11, 
-    ctr: 15,
-    idAds: [
-      { id: 'FB01-001', prospek: 75, leads: 11, ctr: 15 }
-    ]
-  },
-];
-
-const layananAssistData = [
-  { layanan: 'SIMRS', prospek: 200, leads: 65, ctr: 32.5 },
-  { layanan: 'Telemedicine', prospek: 150, leads: 42, ctr: 28 },
-  { layanan: 'EMR', prospek: 120, leads: 35, ctr: 29.2 },
-  { layanan: 'Farmasi', prospek: 100, leads: 28, ctr: 28 },
-];
-
-const kotaData = [
-  { kota: 'Jakarta', prospek: 200, leads: 65, ctr: 32.5 },
-  { kota: 'Surabaya', prospek: 150, leads: 42, ctr: 28 },
-  { kota: 'Bandung', prospek: 120, leads: 35, ctr: 29.2 },
-  { kota: 'Medan', prospek: 100, leads: 28, ctr: 28 },
-  { kota: 'Semarang', prospek: 85, leads: 23, ctr: 27.1 },
-];
-
-const funnelData = [
-  { name: 'Total Prospek', value: 515, fill: '#3b82f6' },
-  { name: 'Dihubungi', value: 412, fill: '#10b981' },
-  { name: 'Tertarik', value: 206, fill: '#f59e0b' },
-  { name: 'Leads', value: 142, fill: '#ef4444' },
-];
-
-const performaCSData = [
-  { nama: 'CS Support 1', prospek: 180, leads: 54, ctr: 30 },
-  { nama: 'CS Support 2', prospek: 165, leads: 45, ctr: 27.3 },
-  { nama: 'CS Support 3', prospek: 170, leads: 43, ctr: 25.3 },
-];
-
-// Heatmap data (hours of the day vs days of the week)
-const heatmapData = [
-  { hour: '00:00', mon: 2, tue: 1, wed: 3, thu: 2, fri: 1, sat: 4, sun: 3 },
-  { hour: '01:00', mon: 1, tue: 0, wed: 1, thu: 1, fri: 0, sat: 2, sun: 1 },
-  { hour: '02:00', mon: 0, tue: 1, wed: 0, thu: 0, fri: 1, sat: 1, sun: 0 },
-  { hour: '08:00', mon: 15, tue: 12, wed: 18, thu: 14, fri: 16, sat: 8, sun: 6 },
-  { hour: '09:00', mon: 25, tue: 22, wed: 28, thu: 24, fri: 26, sat: 12, sun: 10 },
-  { hour: '10:00', mon: 30, tue: 28, wed: 32, thu: 29, fri: 31, sat: 15, sun: 12 },
-  { hour: '11:00', mon: 28, tue: 25, wed: 30, thu: 27, fri: 29, sat: 14, sun: 11 },
-  { hour: '14:00', mon: 22, tue: 20, wed: 25, thu: 23, fri: 24, sat: 18, sun: 15 },
-  { hour: '15:00', mon: 20, tue: 18, wed: 22, thu: 21, fri: 23, sat: 16, sun: 14 },
-  { hour: '19:00', mon: 18, tue: 16, wed: 20, thu: 19, fri: 21, sat: 25, sun: 22 },
-  { hour: '20:00', mon: 15, tue: 13, wed: 17, thu: 16, fri: 18, sat: 28, sun: 25 },
-];
+import { Download, FileText, ChevronDown } from 'lucide-react';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 const COLORS = ['#2563eb', '#16a34a', '#eab308', '#dc2626', '#7c3aed'];
 
 export function Laporan() {
+  const { prospekData, sumberLeadsData, kodeAdsData, layananData, loading } = useSupabaseData();
   const [dateFilter, setDateFilter] = useState('bulan-ini');
+
+  // Filter data berdasarkan periode
+  const filteredData = useMemo(() => {
+    const today = new Date();
+    
+    return prospekData.filter(item => {
+      const itemDate = new Date(item.tanggal_prospek);
+      
+      switch (dateFilter) {
+        case 'hari-ini':
+          return itemDate.toDateString() === today.toDateString();
+        case 'kemarin':
+          const yesterday = new Date(today);
+          yesterday.setDate(yesterday.getDate() - 1);
+          return itemDate.toDateString() === yesterday.toDateString();
+        case 'minggu-ini':
+          const startOfWeek = new Date(today);
+          startOfWeek.setDate(today.getDate() - today.getDay());
+          return itemDate >= startOfWeek && itemDate <= today;
+        case 'minggu-lalu':
+          const startOfLastWeek = new Date(today);
+          startOfLastWeek.setDate(today.getDate() - today.getDay() - 7);
+          const endOfLastWeek = new Date(startOfLastWeek);
+          endOfLastWeek.setDate(startOfLastWeek.getDate() + 6);
+          return itemDate >= startOfLastWeek && itemDate <= endOfLastWeek;
+        case 'bulan-ini':
+          return itemDate.getMonth() === today.getMonth() && itemDate.getFullYear() === today.getFullYear();
+        case 'bulan-lalu':
+          const lastMonth = new Date(today);
+          lastMonth.setMonth(today.getMonth() - 1);
+          return itemDate.getMonth() === lastMonth.getMonth() && itemDate.getFullYear() === lastMonth.getFullYear();
+        default:
+          return true;
+      }
+    });
+  }, [prospekData, dateFilter]);
+
+  // Data untuk chart sumber leads
+  const sumberLeadsChartData = useMemo(() => {
+    return sumberLeadsData.map(sumber => {
+      const count = filteredData.filter(item => item.sumber_leads?.nama === sumber.nama).length;
+      return {
+        name: sumber.nama,
+        value: count,
+        prospek: count,
+        leads: filteredData.filter(item => item.sumber_leads?.nama === sumber.nama && item.status_leads === 'Leads').length,
+        ctr: count > 0 ? Math.round((filteredData.filter(item => item.sumber_leads?.nama === sumber.nama && item.status_leads === 'Leads').length / count) * 100) : 0
+      };
+    }).filter(item => item.value > 0);
+  }, [sumberLeadsData, filteredData]);
+
+  // Data untuk chart kode ads
+  const kodeAdsChartData = useMemo(() => {
+    return kodeAdsData.map(kode => {
+      const count = filteredData.filter(item => item.kode_ads?.kode === kode.kode).length;
+      return {
+        name: kode.kode,
+        value: count,
+        prospek: count,
+        leads: filteredData.filter(item => item.kode_ads?.kode === kode.kode && item.status_leads === 'Leads').length,
+        ctr: count > 0 ? Math.round((filteredData.filter(item => item.kode_ads?.kode === kode.kode && item.status_leads === 'Leads').length / count) * 100) : 0
+      };
+    }).filter(item => item.value > 0);
+  }, [kodeAdsData, filteredData]);
+
+  // Data untuk chart layanan assist
+  const layananAssistChartData = useMemo(() => {
+    return layananData.map(layanan => {
+      const count = filteredData.filter(item => item.layanan_assist?.nama === layanan.nama).length;
+      return {
+        layanan: layanan.nama,
+        prospek: count,
+        leads: filteredData.filter(item => item.layanan_assist?.nama === layanan.nama && item.status_leads === 'Leads').length,
+        ctr: count > 0 ? Math.round((filteredData.filter(item => item.layanan_assist?.nama === layanan.nama && item.status_leads === 'Leads').length / count) * 100) : 0
+      };
+    }).filter(item => item.prospek > 0);
+  }, [layananData, filteredData]);
+
+  // Data untuk chart kota
+  const kotaChartData = useMemo(() => {
+    const kotaMap = new Map();
+    
+    filteredData.forEach(item => {
+      const kota = item.kota;
+      if (!kotaMap.has(kota)) {
+        kotaMap.set(kota, { prospek: 0, leads: 0 });
+      }
+      const current = kotaMap.get(kota);
+      current.prospek += 1;
+      if (item.status_leads === 'Leads') {
+        current.leads += 1;
+      }
+    });
+
+    return Array.from(kotaMap.entries()).map(([kota, data]) => ({
+      kota,
+      prospek: data.prospek,
+      leads: data.leads,
+      ctr: data.prospek > 0 ? Math.round((data.leads / data.prospek) * 100) : 0
+    })).sort((a, b) => b.prospek - a.prospek).slice(0, 10); // Top 10 kota
+  }, [filteredData]);
+
+  // Data untuk funnel konversi
+  const funnelData = useMemo(() => {
+    const totalProspek = filteredData.length;
+    const dihubungi = filteredData.filter(item => item.status_leads === 'Dihubungi').length;
+    const onGoing = filteredData.filter(item => item.status_leads === 'On Going').length;
+    const leads = filteredData.filter(item => item.status_leads === 'Leads').length;
+
+    return [
+      { name: 'Total Prospek', value: totalProspek, fill: '#3b82f6' },
+      { name: 'Dihubungi', value: dihubungi, fill: '#10b981' },
+      { name: 'On Going', value: onGoing, fill: '#f59e0b' },
+      { name: 'Leads', value: leads, fill: '#ef4444' },
+    ];
+  }, [filteredData]);
 
   const renderPieChart = (data: any[], title: string) => (
     <Card className="bg-white border border-gray-200">
@@ -162,25 +148,31 @@ export function Laporan() {
         </div>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-              outerRadius={80}
-              fill="#8884d8"
-              dataKey="value"
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip />
-          </PieChart>
-        </ResponsiveContainer>
+        {data.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[300px] flex items-center justify-center text-gray-500">
+            Tidak ada data untuk periode yang dipilih
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -201,107 +193,22 @@ export function Laporan() {
         </div>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey={xKey} />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="prospek" fill="#94a3b8" name="Prospek" />
-            <Bar dataKey="leads" fill="#2563eb" name="Leads" />
-          </BarChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
-  );
-
-  const renderSumberLeadsTable = () => (
-    <Card className="bg-white border border-gray-200">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900">Tabel Sumber Leads</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Sumber Leads</TableHead>
-              <TableHead className="text-right">Prospek</TableHead>
-              <TableHead className="text-right">Leads</TableHead>
-              <TableHead className="text-right">CTR Leads</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sumberLeadsData.map((item, index) => (
-              <TableRow key={index}>
-                {item.name === 'Organik' && organikSources.length > 1 ? (
-                  <TableCell colSpan={4} className="p-0">
-                    <div className="border border-blue-200 rounded-lg bg-blue-50 m-2">
-                      <Accordion type="single" collapsible className="w-full">
-                        <AccordionItem value="organik" className="border-0">
-                          <AccordionTrigger className="px-4 py-3 hover:no-underline text-left">
-                            <div className="flex justify-between items-center w-full">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-900">{item.name}</span>
-                              </div>
-                              <div className="flex items-center gap-8 text-sm text-gray-700">
-                                <span className="min-w-[60px] text-right">{item.prospek}</span>
-                                <span className="min-w-[60px] text-right">{item.leads}</span>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium min-w-[60px] text-center ${
-                                  item.ctr >= 30 ? 'bg-green-100 text-green-800' : 
-                                  item.ctr >= 25 ? 'bg-yellow-100 text-yellow-800' : 
-                                  'bg-red-100 text-red-800'
-                                }`}>
-                                  {item.ctr}%
-                                </span>
-                                <ChevronDown className="h-4 w-4 text-gray-500" />
-                              </div>
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent className="px-4 pb-3">
-                            <div className="space-y-2">
-                              {organikSources.map((source, idx) => (
-                                <div key={idx} className="flex justify-between items-center text-sm text-gray-600 py-2 px-4 bg-white rounded border-l-4 border-blue-300">
-                                  <span className="font-medium">{source.name}</span>
-                                  <div className="flex items-center gap-8">
-                                    <span className="min-w-[60px] text-right">{source.prospek}</span>
-                                    <span className="min-w-[60px] text-right">{source.leads}</span>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium min-w-[60px] text-center ${
-                                      source.ctr >= 30 ? 'bg-green-100 text-green-800' : 
-                                      source.ctr >= 25 ? 'bg-yellow-100 text-yellow-800' : 
-                                      'bg-red-100 text-red-800'
-                                    }`}>
-                                      {source.ctr}%
-                                    </span>
-                                    <div className="w-4"></div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    </div>
-                  </TableCell>
-                ) : (
-                  <>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell className="text-right">{item.prospek}</TableCell>
-                    <TableCell className="text-right">{item.leads}</TableCell>
-                    <TableCell className="text-right">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        item.ctr >= 30 ? 'bg-green-100 text-green-800' : 
-                        item.ctr >= 25 ? 'bg-yellow-100 text-yellow-800' : 
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {item.ctr}%
-                      </span>
-                    </TableCell>
-                  </>
-                )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        {data.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey={xKey} />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="prospek" fill="#94a3b8" name="Prospek" />
+              <Bar dataKey="leads" fill="#2563eb" name="Leads" />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[300px] flex items-center justify-center text-gray-500">
+            Tidak ada data untuk periode yang dipilih
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -312,217 +219,55 @@ export function Laporan() {
         <CardTitle className="text-lg font-semibold text-gray-900">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>
-                {Object.keys(data[0])[0].charAt(0).toUpperCase() + Object.keys(data[0])[0].slice(1)}
-              </TableHead>
-              <TableHead className="text-right">Prospek</TableHead>
-              <TableHead className="text-right">Leads</TableHead>
-              <TableHead className="text-right">CTR Leads</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((item, index) => (
-              <TableRow key={index}>
-                <TableCell className="font-medium">{Object.values(item)[0] as string}</TableCell>
-                <TableCell className="text-right">{item.prospek}</TableCell>
-                <TableCell className="text-right">{item.leads}</TableCell>
-                <TableCell className="text-right">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    item.ctr >= 30 ? 'bg-green-100 text-green-800' : 
-                    item.ctr >= 25 ? 'bg-yellow-100 text-yellow-800' : 
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {item.ctr}%
-                  </span>
-                </TableCell>
+        {data.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  {Object.keys(data[0])[0].charAt(0).toUpperCase() + Object.keys(data[0])[0].slice(1)}
+                </TableHead>
+                <TableHead className="text-right">Prospek</TableHead>
+                <TableHead className="text-right">Leads</TableHead>
+                <TableHead className="text-right">CTR Leads</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
-
-  const renderHeatmap = () => (
-    <Card className="bg-white border border-gray-200">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg font-semibold text-gray-900">Heatmap Aktivitas Prospek Masuk</CardTitle>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            PNG
-          </Button>
-          <Button variant="outline" size="sm">
-            <FileText className="h-4 w-4 mr-2" />
-            PDF
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <div className="min-w-[600px]">
-            <div className="grid grid-cols-8 gap-1 text-xs mb-2">
-              <div></div>
-              <div className="text-center font-medium">Sen</div>
-              <div className="text-center font-medium">Sel</div>
-              <div className="text-center font-medium">Rab</div>
-              <div className="text-center font-medium">Kam</div>
-              <div className="text-center font-medium">Jum</div>
-              <div className="text-center font-medium">Sab</div>
-              <div className="text-center font-medium">Min</div>
-            </div>
-            {heatmapData.map((row, index) => (
-              <div key={index} className="grid grid-cols-8 gap-1 mb-1">
-                <div className="text-xs font-medium text-right pr-2">{row.hour}</div>
-                <div className={`h-6 rounded text-center text-xs flex items-center justify-center ${
-                  row.mon > 20 ? 'bg-red-500 text-white' : 
-                  row.mon > 10 ? 'bg-orange-300' : 
-                  row.mon > 5 ? 'bg-yellow-200' : 'bg-gray-100'
-                }`}>
-                  {row.mon}
-                </div>
-                <div className={`h-6 rounded text-center text-xs flex items-center justify-center ${
-                  row.tue > 20 ? 'bg-red-500 text-white' : 
-                  row.tue > 10 ? 'bg-orange-300' : 
-                  row.tue > 5 ? 'bg-yellow-200' : 'bg-gray-100'
-                }`}>
-                  {row.tue}
-                </div>
-                <div className={`h-6 rounded text-center text-xs flex items-center justify-center ${
-                  row.wed > 20 ? 'bg-red-500 text-white' : 
-                  row.wed > 10 ? 'bg-orange-300' : 
-                  row.wed > 5 ? 'bg-yellow-200' : 'bg-gray-100'
-                }`}>
-                  {row.wed}
-                </div>
-                <div className={`h-6 rounded text-center text-xs flex items-center justify-center ${
-                  row.thu > 20 ? 'bg-red-500 text-white' : 
-                  row.thu > 10 ? 'bg-orange-300' : 
-                  row.thu > 5 ? 'bg-yellow-200' : 'bg-gray-100'
-                }`}>
-                  {row.thu}
-                </div>
-                <div className={`h-6 rounded text-center text-xs flex items-center justify-center ${
-                  row.fri > 20 ? 'bg-red-500 text-white' : 
-                  row.fri > 10 ? 'bg-orange-300' : 
-                  row.fri > 5 ? 'bg-yellow-200' : 'bg-gray-100'
-                }`}>
-                  {row.fri}
-                </div>
-                <div className={`h-6 rounded text-center text-xs flex items-center justify-center ${
-                  row.sat > 20 ? 'bg-red-500 text-white' : 
-                  row.sat > 10 ? 'bg-orange-300' : 
-                  row.sat > 5 ? 'bg-yellow-200' : 'bg-gray-100'
-                }`}>
-                  {row.sat}
-                </div>
-                <div className={`h-6 rounded text-center text-xs flex items-center justify-center ${
-                  row.sun > 20 ? 'bg-red-500 text-white' : 
-                  row.sun > 10 ? 'bg-orange-300' : 
-                  row.sun > 5 ? 'bg-yellow-200' : 'bg-gray-100'
-                }`}>
-                  {row.sun}
-                </div>
-              </div>
-            ))}
-            <div className="flex items-center justify-center gap-4 mt-4 text-xs">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-gray-100 rounded"></div>
-                <span>0-5</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-yellow-200 rounded"></div>
-                <span>6-10</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-orange-300 rounded"></div>
-                <span>11-20</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-red-500 rounded"></div>
-                <span>20+</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderKodeAdsAccordion = () => (
-    <Card className="bg-white border border-gray-200">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg font-semibold text-gray-900">Tabel Kode Ads</CardTitle>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            PNG
-          </Button>
-          <Button variant="outline" size="sm">
-            <FileText className="h-4 w-4 mr-2" />
-            PDF
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Accordion type="multiple" className="w-full">
-          {kodeAdsData.filter(item => item.idAds.length > 1).map((item, index) => (
-            <AccordionItem key={item.name} value={`item-${index}`}>
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex justify-between items-center w-full pr-4">
-                  <span className="font-medium">{item.name}</span>
-                  <div className="flex gap-8 text-sm">
-                    <span>Prospek: {item.prospek}</span>
-                    <span>Leads: {item.leads}</span>
+            </TableHeader>
+            <TableBody>
+              {data.map((item, index) => (
+                <TableRow key={index}>
+                  <TableCell className="font-medium">{Object.values(item)[0] as string}</TableCell>
+                  <TableCell className="text-right">{item.prospek}</TableCell>
+                  <TableCell className="text-right">{item.leads}</TableCell>
+                  <TableCell className="text-right">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       item.ctr >= 30 ? 'bg-green-100 text-green-800' : 
                       item.ctr >= 25 ? 'bg-yellow-100 text-yellow-800' : 
                       'bg-red-100 text-red-800'
                     }`}>
-                      CTR: {item.ctr}%
+                      {item.ctr}%
                     </span>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID Ads</TableHead>
-                      <TableHead className="text-right">Prospek</TableHead>
-                      <TableHead className="text-right">Leads</TableHead>
-                      <TableHead className="text-right">CTR Leads</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {item.idAds.map((ads) => (
-                      <TableRow key={ads.id}>
-                        <TableCell className="font-medium">{ads.id}</TableCell>
-                        <TableCell className="text-right">{ads.prospek}</TableCell>
-                        <TableCell className="text-right">{ads.leads}</TableCell>
-                        <TableCell className="text-right">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            ads.ctr >= 30 ? 'bg-green-100 text-green-800' : 
-                            ads.ctr >= 25 ? 'bg-yellow-100 text-yellow-800' : 
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {ads.ctr}%
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="py-8 text-center text-gray-500">
+            Tidak ada data untuk periode yang dipilih
+          </div>
+        )}
       </CardContent>
     </Card>
   );
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <div className="text-gray-500">Memuat data laporan...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -530,7 +275,7 @@ export function Laporan() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Laporan</h2>
-          <p className="text-gray-600">Analisis performa leads dan prospek</p>
+          <p className="text-gray-600">Analisis performa leads dan prospek berdasarkan data real</p>
         </div>
         <Select value={dateFilter} onValueChange={setDateFilter}>
           <SelectTrigger className="w-48">
@@ -550,41 +295,39 @@ export function Laporan() {
 
       {/* Tabbed Reports */}
       <Tabs defaultValue="sumber-leads" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="sumber-leads">Sumber Leads</TabsTrigger>
           <TabsTrigger value="kode-ads">Kode Ads</TabsTrigger>
           <TabsTrigger value="layanan-assist">Layanan Assist</TabsTrigger>
           <TabsTrigger value="kota">Kota/Kabupaten</TabsTrigger>
           <TabsTrigger value="funnel">Funnel Konversi</TabsTrigger>
-          <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
-          <TabsTrigger value="performa-cs">Performa CS</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sumber-leads" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {renderPieChart(sumberLeadsData, 'Distribusi Sumber Leads')}
-            {renderSumberLeadsTable()}
+            {renderPieChart(sumberLeadsChartData, 'Distribusi Sumber Leads')}
+            {renderTable(sumberLeadsChartData, 'Tabel Sumber Leads')}
           </div>
         </TabsContent>
 
         <TabsContent value="kode-ads" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {renderPieChart(kodeAdsData, 'Distribusi Kode Ads')}
-            {renderKodeAdsAccordion()}
+            {renderPieChart(kodeAdsChartData, 'Distribusi Kode Ads')}
+            {renderTable(kodeAdsChartData, 'Tabel Kode Ads')}
           </div>
         </TabsContent>
 
         <TabsContent value="layanan-assist" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {renderBarChart(layananAssistData, 'Layanan Assist', 'layanan')}
-            {renderTable(layananAssistData, 'Tabel Layanan Assist')}
+            {renderBarChart(layananAssistChartData, 'Layanan Assist', 'layanan')}
+            {renderTable(layananAssistChartData, 'Tabel Layanan Assist')}
           </div>
         </TabsContent>
 
         <TabsContent value="kota" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {renderBarChart(kotaData, 'Kota/Kabupaten', 'kota')}
-            {renderTable(kotaData, 'Tabel Kota/Kabupaten')}
+            {renderBarChart(kotaChartData, 'Top 10 Kota/Kabupaten', 'kota')}
+            {renderTable(kotaChartData, 'Tabel Kota/Kabupaten')}
           </div>
         </TabsContent>
 
@@ -604,31 +347,26 @@ export function Laporan() {
               </div>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <FunnelChart>
-                  <Tooltip />
-                  <Funnel
-                    dataKey="value"
-                    data={funnelData}
-                    isAnimationActive
-                  >
-                    <LabelList position="center" fill="#fff" stroke="none" />
-                  </Funnel>
-                </FunnelChart>
-              </ResponsiveContainer>
+              {funnelData.some(item => item.value > 0) ? (
+                <ResponsiveContainer width="100%" height={400}>
+                  <FunnelChart>
+                    <Tooltip />
+                    <Funnel
+                      dataKey="value"
+                      data={funnelData}
+                      isAnimationActive
+                    >
+                      <LabelList position="center" fill="#fff" stroke="none" />
+                    </Funnel>
+                  </FunnelChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[400px] flex items-center justify-center text-gray-500">
+                  Tidak ada data untuk periode yang dipilih
+                </div>
+              )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="heatmap" className="space-y-6">
-          {renderHeatmap()}
-        </TabsContent>
-
-        <TabsContent value="performa-cs" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {renderBarChart(performaCSData, 'Performa CS', 'nama')}
-            {renderTable(performaCSData, 'Tabel Performa CS')}
-          </div>
         </TabsContent>
       </Tabs>
     </div>

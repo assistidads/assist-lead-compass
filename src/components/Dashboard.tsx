@@ -4,28 +4,129 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { Users, Target, TrendingUp, Phone } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState } from 'react';
-
-const trendData = [
-  { name: 'Sen', prospek: 45, leads: 12 },
-  { name: 'Sel', prospek: 52, leads: 18 },
-  { name: 'Rab', prospek: 38, leads: 15 },
-  { name: 'Kam', prospek: 61, leads: 22 },
-  { name: 'Jum', prospek: 55, leads: 19 },
-  { name: 'Sab', prospek: 42, leads: 14 },
-  { name: 'Min', prospek: 48, leads: 16 },
-];
-
-const layananData = [
-  { layanan: 'SIMRS', prospek: 150, leads: 45, ctr: 30 },
-  { layanan: 'Telemedicine', prospek: 120, leads: 28, ctr: 23.3 },
-  { layanan: 'EMR', prospek: 90, leads: 32, ctr: 35.6 },
-  { layanan: 'Farmasi', prospek: 75, leads: 18, ctr: 24 },
-  { layanan: 'Laboratory', prospek: 60, leads: 21, ctr: 35 },
-];
+import { useState, useMemo } from 'react';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 export function Dashboard() {
+  const { prospekData, layananData, loading } = useSupabaseData();
   const [timeFilter, setTimeFilter] = useState('bulan-ini');
+
+  // Filter data berdasarkan periode yang dipilih
+  const filteredData = useMemo(() => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    return prospekData.filter(item => {
+      const itemDate = new Date(item.tanggal_prospek);
+      
+      switch (timeFilter) {
+        case 'hari-ini':
+          return itemDate.toDateString() === today.toDateString();
+        case 'kemarin':
+          return itemDate.toDateString() === yesterday.toDateString();
+        case 'minggu-ini':
+          const startOfWeek = new Date(today);
+          startOfWeek.setDate(today.getDate() - today.getDay());
+          return itemDate >= startOfWeek && itemDate <= today;
+        case 'minggu-lalu':
+          const startOfLastWeek = new Date(today);
+          startOfLastWeek.setDate(today.getDate() - today.getDay() - 7);
+          const endOfLastWeek = new Date(startOfLastWeek);
+          endOfLastWeek.setDate(startOfLastWeek.getDate() + 6);
+          return itemDate >= startOfLastWeek && itemDate <= endOfLastWeek;
+        case 'bulan-ini':
+          return itemDate.getMonth() === today.getMonth() && itemDate.getFullYear() === today.getFullYear();
+        case 'bulan-lalu':
+          const lastMonth = new Date(today);
+          lastMonth.setMonth(today.getMonth() - 1);
+          return itemDate.getMonth() === lastMonth.getMonth() && itemDate.getFullYear() === lastMonth.getFullYear();
+        default:
+          return true;
+      }
+    });
+  }, [prospekData, timeFilter]);
+
+  // Hitung metrik berdasarkan data real
+  const todayData = prospekData.filter(item => {
+    const itemDate = new Date(item.tanggal_prospek);
+    const today = new Date();
+    return itemDate.toDateString() === today.toDateString();
+  });
+
+  const yesterdayData = prospekData.filter(item => {
+    const itemDate = new Date(item.tanggal_prospek);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return itemDate.toDateString() === yesterday.toDateString();
+  });
+
+  const thisMonthData = prospekData.filter(item => {
+    const itemDate = new Date(item.tanggal_prospek);
+    const today = new Date();
+    return itemDate.getMonth() === today.getMonth() && itemDate.getFullYear() === today.getFullYear();
+  });
+
+  const lastMonthData = prospekData.filter(item => {
+    const itemDate = new Date(item.tanggal_prospek);
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+    return itemDate.getMonth() === lastMonth.getMonth() && itemDate.getFullYear() === lastMonth.getFullYear();
+  });
+
+  // Hitung perubahan persentase
+  const calculateChange = (current: number, previous: number) => {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return Math.round(((current - previous) / previous) * 100);
+  };
+
+  // Data untuk chart tren 7 hari terakhir
+  const trendData = useMemo(() => {
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      
+      const dayData = prospekData.filter(item => {
+        const itemDate = new Date(item.tanggal_prospek);
+        return itemDate.toDateString() === date.toDateString();
+      });
+
+      const dayName = date.toLocaleDateString('id-ID', { weekday: 'short' });
+      
+      last7Days.push({
+        name: dayName,
+        prospek: dayData.length,
+        leads: dayData.filter(item => item.status_leads === 'Leads').length
+      });
+    }
+    return last7Days;
+  }, [prospekData]);
+
+  // Data untuk chart layanan berdasarkan data real
+  const layananChartData = useMemo(() => {
+    return layananData.map(layanan => {
+      const layananProspek = filteredData.filter(item => item.layanan_assist?.nama === layanan.nama);
+      const leads = layananProspek.filter(item => item.status_leads === 'Leads');
+      
+      return {
+        layanan: layanan.nama,
+        prospek: layananProspek.length,
+        leads: leads.length,
+        ctr: layananProspek.length > 0 ? Math.round((leads.length / layananProspek.length) * 100) : 0
+      };
+    }).filter(item => item.prospek > 0); // Hanya tampilkan layanan yang ada datanya
+  }, [layananData, filteredData]);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <div className="text-gray-500">Memuat data dashboard...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -52,29 +153,35 @@ export function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Prospek Hari Ini"
-          value="24"
-          change={12}
+          value={todayData.length.toString()}
+          change={calculateChange(todayData.length, yesterdayData.length)}
           changeLabel="vs kemarin"
           icon={<Users className="h-5 w-5" />}
         />
         <MetricCard
           title="Leads Hari Ini"
-          value="8"
-          change={25}
+          value={todayData.filter(item => item.status_leads === 'Leads').length.toString()}
+          change={calculateChange(
+            todayData.filter(item => item.status_leads === 'Leads').length,
+            yesterdayData.filter(item => item.status_leads === 'Leads').length
+          )}
           changeLabel="vs kemarin"
           icon={<Target className="h-5 w-5" />}
         />
         <MetricCard
           title="Prospek Bulan Ini"
-          value="485"
-          change={8}
+          value={thisMonthData.length.toString()}
+          change={calculateChange(thisMonthData.length, lastMonthData.length)}
           changeLabel="vs bulan lalu"
           icon={<TrendingUp className="h-5 w-5" />}
         />
         <MetricCard
           title="Leads Bulan Ini"
-          value="142"
-          change={15}
+          value={thisMonthData.filter(item => item.status_leads === 'Leads').length.toString()}
+          change={calculateChange(
+            thisMonthData.filter(item => item.status_leads === 'Leads').length,
+            lastMonthData.filter(item => item.status_leads === 'Leads').length
+          )}
           changeLabel="vs bulan lalu"
           icon={<Phone className="h-5 w-5" />}
         />
@@ -85,7 +192,7 @@ export function Dashboard() {
         {/* Trend Chart */}
         <Card className="bg-white border border-gray-200">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900">Tren Prospek & Leads</CardTitle>
+            <CardTitle className="text-lg font-semibold text-gray-900">Tren Prospek & Leads (7 Hari Terakhir)</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -94,21 +201,21 @@ export function Dashboard() {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
-                <Line type="monotone" dataKey="prospek" stroke="#2563eb" strokeWidth={3} />
-                <Line type="monotone" dataKey="leads" stroke="#16a34a" strokeWidth={3} />
+                <Line type="monotone" dataKey="prospek" stroke="#2563eb" strokeWidth={3} name="Prospek" />
+                <Line type="monotone" dataKey="leads" stroke="#16a34a" strokeWidth={3} name="Leads" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Service Performance Chart - Updated to show both Prospek and Leads */}
+        {/* Service Performance Chart */}
         <Card className="bg-white border border-gray-200">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-900">Prospek & Leads per Layanan Assist</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={layananData}>
+              <BarChart data={layananChartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="layanan" />
                 <YAxis />
@@ -138,7 +245,7 @@ export function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {layananData.map((item, index) => (
+                {layananChartData.map((item, index) => (
                   <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-3 px-4 text-gray-900">{item.layanan}</td>
                     <td className="py-3 px-4 text-right text-gray-900">{item.prospek}</td>
@@ -154,6 +261,13 @@ export function Dashboard() {
                     </td>
                   </tr>
                 ))}
+                {layananChartData.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="py-8 text-center text-gray-500">
+                      Belum ada data prospek untuk periode yang dipilih
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

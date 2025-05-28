@@ -1,8 +1,6 @@
 
 import { Dashboard } from './Dashboard';
-import { DataMaster } from './DataMaster';
 import { SupabaseDataMaster } from './SupabaseDataMaster';
-import { ProspekTable } from './ProspekTable';
 import { SupabaseProspekTable } from './SupabaseProspekTable';
 import { Laporan } from './Laporan';
 import { SupabaseLaporan } from './SupabaseLaporan';
@@ -18,35 +16,9 @@ export default function AppContent({ currentPage }: AppContentProps) {
       case 'dashboard':
         return <Dashboard />;
       case 'data-master':
-        return (
-          <Tabs defaultValue="supabase" className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="supabase">Data Master (Supabase)</TabsTrigger>
-              <TabsTrigger value="demo">Data Master (Demo)</TabsTrigger>
-            </TabsList>
-            <TabsContent value="supabase">
-              <SupabaseDataMaster />
-            </TabsContent>
-            <TabsContent value="demo">
-              <DataMaster />
-            </TabsContent>
-          </Tabs>
-        );
+        return <SupabaseDataMaster />;
       case 'data-prospek':
-        return (
-          <Tabs defaultValue="supabase" className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="supabase">Data Prospek (Supabase)</TabsTrigger>
-              <TabsTrigger value="demo">Data Prospek (Demo)</TabsTrigger>
-            </TabsList>
-            <TabsContent value="supabase">
-              <SupabaseProspekTable />
-            </TabsContent>
-            <TabsContent value="demo">
-              <ProspekTable />
-            </TabsContent>
-          </Tabs>
-        );
+        return <SupabaseProspekTable />;
       case 'laporan':
         return (
           <Tabs defaultValue="analisis" className="space-y-6">
