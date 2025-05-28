@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,12 +9,45 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, FunnelChart, Funnel, LabelList } from 'recharts';
 import { Download, FileText, Activity } from 'lucide-react';
 
-// Sample data for reports
-const sumberLeadsData = [
+// Sample data for reports - Updated sumber leads data
+const sumberLeadsDataRaw = [
   { name: 'Meta Ads', value: 35, prospek: 180, leads: 63, ctr: 35 },
   { name: 'Google Ads', value: 28, prospek: 150, leads: 42, ctr: 28 },
-  { name: 'Website Organik', value: 20, prospek: 100, leads: 20, ctr: 20 },
+  { name: 'Website Direct', value: 12, prospek: 60, leads: 12, ctr: 20 },
+  { name: 'Social Media', value: 8, prospek: 40, leads: 8, ctr: 20 },
   { name: 'Referral', value: 17, prospek: 85, leads: 17, ctr: 20 },
+];
+
+// Calculate Organik data
+const organikSources = sumberLeadsDataRaw.filter(item => 
+  !item.name.toLowerCase().includes('ads') && 
+  !item.name.toLowerCase().includes('referral')
+);
+
+const organikTotal = organikSources.reduce((acc, item) => ({
+  prospek: acc.prospek + item.prospek,
+  leads: acc.leads + item.leads,
+  value: acc.value + item.value
+}), { prospek: 0, leads: 0, value: 0 });
+
+const organikCtr = organikTotal.prospek > 0 ? (organikTotal.leads / organikTotal.prospek) * 100 : 0;
+
+const organikData = {
+  name: 'Organik',
+  value: organikTotal.value,
+  prospek: organikTotal.prospek,
+  leads: organikTotal.leads,
+  ctr: Math.round(organikCtr * 10) / 10,
+  breakdown: organikSources
+};
+
+// Final sumber leads data with Organik at the top
+const sumberLeadsData = [
+  organikData,
+  ...sumberLeadsDataRaw.filter(item => 
+    item.name.toLowerCase().includes('ads') || 
+    item.name.toLowerCase().includes('referral')
+  )
 ];
 
 const kodeAdsData = [
@@ -176,6 +210,85 @@ export function Laporan() {
             <Bar dataKey="leads" fill="#2563eb" name="Leads" />
           </BarChart>
         </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
+  const renderSumberLeadsTable = () => (
+    <Card className="bg-white border border-gray-200">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold text-gray-900">Tabel Sumber Leads</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Sumber Leads</TableHead>
+              <TableHead className="text-right">Prospek</TableHead>
+              <TableHead className="text-right">Leads</TableHead>
+              <TableHead className="text-right">CTR Leads</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sumberLeadsData.map((item, index) => (
+              <TableRow key={index}>
+                {item.name === 'Organik' && organikSources.length > 1 ? (
+                  <TableCell colSpan={4} className="p-0">
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value="organik" className="border-0">
+                        <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                          <div className="flex justify-between items-center w-full pr-4">
+                            <span className="font-medium">{item.name}</span>
+                            <div className="flex gap-8 text-sm">
+                              <span>{item.prospek}</span>
+                              <span>{item.leads}</span>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                item.ctr >= 30 ? 'bg-green-100 text-green-800' : 
+                                item.ctr >= 25 ? 'bg-yellow-100 text-yellow-800' : 
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {item.ctr}%
+                              </span>
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-4 pb-3">
+                          <div className="border-l-2 border-gray-200 ml-4 pl-4 space-y-2">
+                            {organikSources.map((source, idx) => (
+                              <div key={idx} className="flex justify-between items-center text-sm text-gray-600">
+                                <span>{source.name}</span>
+                                <div className="flex gap-8">
+                                  <span>{source.prospek}</span>
+                                  <span>{source.leads}</span>
+                                  <span>{source.ctr}%</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </TableCell>
+                ) : (
+                  <>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell className="text-right">{item.prospek}</TableCell>
+                    <TableCell className="text-right">{item.leads}</TableCell>
+                    <TableCell className="text-right">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        item.ctr >= 30 ? 'bg-green-100 text-green-800' : 
+                        item.ctr >= 25 ? 'bg-yellow-100 text-yellow-800' : 
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {item.ctr}%
+                      </span>
+                    </TableCell>
+                  </>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );
@@ -437,7 +550,7 @@ export function Laporan() {
         <TabsContent value="sumber-leads" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {renderPieChart(sumberLeadsData, 'Distribusi Sumber Leads')}
-            {renderTable(sumberLeadsData, 'Tabel Sumber Leads')}
+            {renderSumberLeadsTable()}
           </div>
         </TabsContent>
 

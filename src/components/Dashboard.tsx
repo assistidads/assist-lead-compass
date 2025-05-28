@@ -65,16 +65,16 @@ export function Dashboard() {
           icon={<Target className="h-5 w-5" />}
         />
         <MetricCard
-          title="Prospek Minggu Ini"
-          value="156"
+          title="Prospek Bulan Ini"
+          value="485"
           change={8}
-          changeLabel="vs minggu lalu"
+          changeLabel="vs bulan lalu"
           icon={<TrendingUp className="h-5 w-5" />}
         />
         <MetricCard
-          title="CTR Leads Bulan Ini"
-          value="28.5%"
-          change={-2}
+          title="Leads Bulan Ini"
+          value="142"
+          change={15}
           changeLabel="vs bulan lalu"
           icon={<Phone className="h-5 w-5" />}
         />
@@ -158,7 +158,7 @@ export function Dashboard() {
             </table>
           </div>
         </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }
