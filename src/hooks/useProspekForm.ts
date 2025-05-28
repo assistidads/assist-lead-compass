@@ -31,6 +31,48 @@ export interface ProspekFormData {
   picLeads: string;
 }
 
+// Data provinsi lengkap 38 provinsi Indonesia
+const indonesianProvinces: Province[] = [
+  { id: '11', name: 'Aceh' },
+  { id: '12', name: 'Sumatera Utara' },
+  { id: '13', name: 'Sumatera Barat' },
+  { id: '14', name: 'Riau' },
+  { id: '15', name: 'Jambi' },
+  { id: '16', name: 'Sumatera Selatan' },
+  { id: '17', name: 'Bengkulu' },
+  { id: '18', name: 'Lampung' },
+  { id: '19', name: 'Kepulauan Bangka Belitung' },
+  { id: '21', name: 'Kepulauan Riau' },
+  { id: '31', name: 'DKI Jakarta' },
+  { id: '32', name: 'Jawa Barat' },
+  { id: '33', name: 'Jawa Tengah' },
+  { id: '34', name: 'DI Yogyakarta' },
+  { id: '35', name: 'Jawa Timur' },
+  { id: '36', name: 'Banten' },
+  { id: '51', name: 'Bali' },
+  { id: '52', name: 'Nusa Tenggara Barat' },
+  { id: '53', name: 'Nusa Tenggara Timur' },
+  { id: '61', name: 'Kalimantan Barat' },
+  { id: '62', name: 'Kalimantan Tengah' },
+  { id: '63', name: 'Kalimantan Selatan' },
+  { id: '64', name: 'Kalimantan Timur' },
+  { id: '65', name: 'Kalimantan Utara' },
+  { id: '71', name: 'Sulawesi Utara' },
+  { id: '72', name: 'Sulawesi Tengah' },
+  { id: '73', name: 'Sulawesi Selatan' },
+  { id: '74', name: 'Sulawesi Tenggara' },
+  { id: '75', name: 'Gorontalo' },
+  { id: '76', name: 'Sulawesi Barat' },
+  { id: '81', name: 'Maluku' },
+  { id: '82', name: 'Maluku Utara' },
+  { id: '91', name: 'Papua Barat' },
+  { id: '92', name: 'Papua' },
+  { id: '93', name: 'Papua Selatan' },
+  { id: '94', name: 'Papua Tengah' },
+  { id: '95', name: 'Papua Pegunungan' },
+  { id: '96', name: 'Papua Barat Daya' }
+];
+
 export function useProspekForm() {
   const [formData, setFormData] = useState<ProspekFormData>({
     tanggalProspek: new Date().toISOString().split('T')[0],
@@ -50,15 +92,10 @@ export function useProspekForm() {
     picLeads: 'CS Support 1'
   });
 
-  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [provinces] = useState<Province[]>(indonesianProvinces);
   const [regencies, setRegencies] = useState<Regency[]>([]);
-  const [loadingProvinces, setLoadingProvinces] = useState(false);
+  const [loadingProvinces] = useState(false);
   const [loadingRegencies, setLoadingRegencies] = useState(false);
-
-  // Fetch provinces on mount
-  useEffect(() => {
-    fetchProvinces();
-  }, []);
 
   // Fetch regencies when province changes
   useEffect(() => {
@@ -68,24 +105,6 @@ export function useProspekForm() {
       setRegencies([]);
     }
   }, [formData.provinsi]);
-
-  const fetchProvinces = async () => {
-    setLoadingProvinces(true);
-    try {
-      const response = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
-      const data = await response.json();
-      setProvinces(data);
-    } catch (error) {
-      console.error('Error fetching provinces:', error);
-      toast({
-        title: "Error",
-        description: "Gagal memuat data provinsi",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingProvinces(false);
-    }
-  };
 
   const fetchRegencies = async (provinceId: string) => {
     setLoadingRegencies(true);

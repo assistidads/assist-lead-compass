@@ -6,8 +6,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { ProspekFilter } from './ProspekFilter';
 import { ProspekFilterSummary } from './ProspekFilterSummary';
 import { ProspekDataTable } from './ProspekDataTable';
+import { ProspekData } from '@/types/prospek';
 
-const prospekData = [
+const prospekData: ProspekData[] = [
   {
     id: 1,
     createdDate: '15/01/2024 09:30',
@@ -79,7 +80,6 @@ export function ProspekTable() {
   
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [isFormOpen, setIsFormOpen] = useState(false);
 
   // Get unique values for filter options
   const uniqueKodeAds = [...new Set(prospekData.map(item => item.kodeAds).filter(Boolean))];
