@@ -2,18 +2,16 @@
 import { useState, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Download } from 'lucide-react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 const COLORS = ['#2563eb', '#16a34a', '#eab308', '#dc2626', '#7c3aed'];
 
-interface LaporanProps {
-  reportType: string;
-}
-
-export function Laporan({ reportType }: LaporanProps) {
+export function Laporan() {
   const { prospekData, sumberLeadsData, kodeAdsData, layananData, loading } = useSupabaseData();
+  const [activeTab, setActiveTab] = useState('sumber-leads');
   const chartRef = useRef<HTMLDivElement>(null);
 
   // Data untuk chart sumber leads
@@ -96,7 +94,7 @@ export function Laporan({ reportType }: LaporanProps) {
           ctx.drawImage(img, 0, 0);
           
           const link = document.createElement('a');
-          link.download = `chart-${reportType}-${Date.now()}.png`;
+          link.download = `chart-${activeTab}-${Date.now()}.png`;
           link.href = canvas.toDataURL();
           link.click();
         };
@@ -117,7 +115,7 @@ export function Laporan({ reportType }: LaporanProps) {
   }
 
   const getTitle = () => {
-    switch (reportType) {
+    switch (activeTab) {
       case 'sumber-leads':
         return 'Distribusi Sumber Leads';
       case 'kode-ads':
@@ -138,7 +136,7 @@ export function Laporan({ reportType }: LaporanProps) {
   };
 
   const getSubtitle = () => {
-    switch (reportType) {
+    switch (activeTab) {
       case 'sumber-leads':
         return 'Tabel Sumber Leads';
       case 'kode-ads':
@@ -153,7 +151,7 @@ export function Laporan({ reportType }: LaporanProps) {
   };
 
   const renderChart = () => {
-    switch (reportType) {
+    switch (activeTab) {
       case 'sumber-leads':
         return (
           <ResponsiveContainer width="100%" height={300}>
@@ -221,31 +219,31 @@ export function Laporan({ reportType }: LaporanProps) {
   };
 
   const renderTable = () => {
-    switch (reportType) {
+    switch (activeTab) {
       case 'sumber-leads':
         return (
           <div className="bg-white rounded-lg border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
               <h3 className="text-lg font-semibold text-gray-900">Tabel Sumber Leads</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Prospek</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Leads</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">CTR Leads</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Name</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Prospek</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Leads</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">CTR Leads</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {sumberLeadsChartData.map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
+                    <tr key={index} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{item.prospek}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{item.leads}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                        <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
                           {item.ctr}%
                         </span>
                       </td>
@@ -259,27 +257,27 @@ export function Laporan({ reportType }: LaporanProps) {
       case 'kode-ads':
         return (
           <div className="bg-white rounded-lg border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
               <h3 className="text-lg font-semibold text-gray-900">Tabel Kode Ads</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Prospek</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Leads</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">CTR Leads</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Name</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Prospek</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Leads</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">CTR Leads</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {kodeAdsChartData.map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
+                    <tr key={index} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{item.prospek}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{item.leads}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                        <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
                           {item.ctr}%
                         </span>
                       </td>
@@ -293,29 +291,29 @@ export function Laporan({ reportType }: LaporanProps) {
       case 'performa-cs':
         return (
           <div className="bg-white rounded-lg border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
               <h3 className="text-lg font-semibold text-gray-900">Tabel Performa CS</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama CS</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total Prospek</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Leads</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Bukan Leads</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">CTR Leads</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Nama CS</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Total Prospek</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Leads</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Bukan Leads</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">CTR Leads</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {performaCSData.map((cs, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
+                    <tr key={index} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{cs.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{cs.prospek}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{cs.prospek}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 text-center font-medium">{cs.leads}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 text-center font-medium">{cs.bukanLeads}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getCTRColor(cs.ctr)}`}>
+                        <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(cs.ctr)}`}>
                           {cs.ctr}%
                         </span>
                       </td>
@@ -337,39 +335,112 @@ export function Laporan({ reportType }: LaporanProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">{getTitle()}</h2>
-          <p className="text-gray-600">Analisis performa leads dan prospek</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={downloadChartAsPNG}>
-            <Download className="h-4 w-4 mr-2" />
-            PNG
-          </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            PDF
-          </Button>
-        </div>
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">{getTitle()}</h2>
+        <p className="text-gray-600">Analisis performa leads dan prospek</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-white border border-gray-200">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900">{getTitle()}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div ref={chartRef}>
-              {renderChart()}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="sumber-leads">Sumber Leads</TabsTrigger>
+          <TabsTrigger value="kode-ads">Kode Ads</TabsTrigger>
+          <TabsTrigger value="layanan">Layanan</TabsTrigger>
+          <TabsTrigger value="performa-cs">Performa CS</TabsTrigger>
+          <TabsTrigger value="kota-kabupaten">Kota/Kabupaten</TabsTrigger>
+          <TabsTrigger value="funnel">Funnel</TabsTrigger>
+          <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="sumber-leads">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="bg-white border border-gray-200">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-lg font-semibold text-gray-900">Distribusi Sumber Leads</CardTitle>
+                <Button variant="outline" size="sm" onClick={downloadChartAsPNG}>
+                  <Download className="h-4 w-4 mr-2" />
+                  PNG
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div ref={chartRef}>
+                  {renderChart()}
+                </div>
+              </CardContent>
+            </Card>
+            <div className="space-y-6">
+              {renderTable()}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </TabsContent>
 
-        <div className="space-y-6">
-          {renderTable()}
-        </div>
-      </div>
+        <TabsContent value="kode-ads">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="bg-white border border-gray-200">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-lg font-semibold text-gray-900">Distribusi Kode Ads</CardTitle>
+                <Button variant="outline" size="sm" onClick={downloadChartAsPNG}>
+                  <Download className="h-4 w-4 mr-2" />
+                  PNG
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div ref={chartRef}>
+                  {renderChart()}
+                </div>
+              </CardContent>
+            </Card>
+            <div className="space-y-6">
+              {renderTable()}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="layanan">
+          <div className="text-center py-8 text-gray-500">
+            Laporan layanan akan segera tersedia
+          </div>
+        </TabsContent>
+
+        <TabsContent value="performa-cs">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="bg-white border border-gray-200">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-lg font-semibold text-gray-900">Performa CS</CardTitle>
+                <Button variant="outline" size="sm" onClick={downloadChartAsPNG}>
+                  <Download className="h-4 w-4 mr-2" />
+                  PNG
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div ref={chartRef}>
+                  {renderChart()}
+                </div>
+              </CardContent>
+            </Card>
+            <div className="space-y-6">
+              {renderTable()}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="kota-kabupaten">
+          <div className="text-center py-8 text-gray-500">
+            Laporan kota/kabupaten akan segera tersedia
+          </div>
+        </TabsContent>
+
+        <TabsContent value="funnel">
+          <div className="text-center py-8 text-gray-500">
+            Laporan funnel akan segera tersedia
+          </div>
+        </TabsContent>
+
+        <TabsContent value="heatmap">
+          <div className="text-center py-8 text-gray-500">
+            Laporan heatmap akan segera tersedia
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
