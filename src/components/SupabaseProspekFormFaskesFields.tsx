@@ -3,8 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SupabaseProspekFormData } from '@/hooks/useSupabaseProspekForm';
-
-const tipeFaskes = ['Rumah Sakit', 'Klinik', 'Puskesmas', 'Laboratorium', 'Apotek'];
+import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 interface Province {
   id: string;
@@ -36,6 +35,8 @@ export function SupabaseProspekFormFaskesFields({
   layananAssistOptions,
   usersOptions
 }: SupabaseProspekFormFaskesFieldsProps) {
+  const { tipeFaskesData } = useSupabaseData();
+
   return (
     <>
       {/* Layanan Assist */}
@@ -61,11 +62,12 @@ export function SupabaseProspekFormFaskesFields({
           value={formData.nama_faskes}
           onChange={(e) => onInputChange('nama_faskes', e.target.value)}
           placeholder="Masukkan nama fasilitas kesehatan"
+          autoComplete="off"
           required
         />
       </div>
 
-      {/* Tipe Faskes */}
+      {/* Tipe Faskes - Updated to use data master */}
       <div>
         <Label htmlFor="tipe_faskes">Tipe Faskes <span className="text-red-500">*</span></Label>
         <Select value={formData.tipe_faskes} onValueChange={(value) => onInputChange('tipe_faskes', value)} required>
@@ -73,8 +75,8 @@ export function SupabaseProspekFormFaskesFields({
             <SelectValue placeholder="Pilih tipe faskes" />
           </SelectTrigger>
           <SelectContent>
-            {tipeFaskes.map(item => (
-              <SelectItem key={item} value={item}>{item}</SelectItem>
+            {tipeFaskesData.map(item => (
+              <SelectItem key={item.id} value={item.nama || ''}>{item.nama}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -121,8 +123,8 @@ export function SupabaseProspekFormFaskesFields({
 
       {/* PIC Leads */}
       <div>
-        <Label htmlFor="pic_leads_id">PIC Leads</Label>
-        <Select value={formData.pic_leads_id} onValueChange={(value) => onInputChange('pic_leads_id', value)}>
+        <Label htmlFor="pic_leads_id">PIC Leads <span className="text-red-500">*</span></Label>
+        <Select value={formData.pic_leads_id} onValueChange={(value) => onInputChange('pic_leads_id', value)} required>
           <SelectTrigger>
             <SelectValue placeholder="Pilih PIC Leads" />
           </SelectTrigger>

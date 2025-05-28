@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 interface Province {
   id: string;
@@ -36,6 +37,8 @@ export interface SupabaseProspekFormData {
 
 export function useSupabaseProspekForm() {
   const { user } = useAuth();
+  const { statusLeadsData, tipeFaskesData } = useSupabaseData();
+  
   const [formData, setFormData] = useState<SupabaseProspekFormData>({
     tanggal_prospek: new Date().toISOString().split('T')[0],
     sumber_leads_id: '',
