@@ -16,9 +16,15 @@ export default function AppContent({ currentPage }: AppContentProps) {
       case 'dashboard':
         return <Dashboard />;
       case 'data-master':
+        return <SupabaseDataMaster />;
+      case 'data-prospek':
+        return <SupabaseProspekTable />;
+      case 'laporan':
         return (
-          <Tabs defaultValue="user" className="space-y-6">
+          <Tabs defaultValue="analisis" className="space-y-6">
             <TabsList>
+              <TabsTrigger value="analisis">Analisis & Chart</TabsTrigger>
+              <TabsTrigger value="data-real">Data Real</TabsTrigger>
               <TabsTrigger value="user">User</TabsTrigger>
               <TabsTrigger value="layanan">Layanan</TabsTrigger>
               <TabsTrigger value="kode-ads">Kode Ads</TabsTrigger>
@@ -27,6 +33,12 @@ export default function AppContent({ currentPage }: AppContentProps) {
               <TabsTrigger value="status-leads">Status Leads</TabsTrigger>
               <TabsTrigger value="bukan-leads">Bukan Leads</TabsTrigger>
             </TabsList>
+            <TabsContent value="analisis">
+              <Laporan />
+            </TabsContent>
+            <TabsContent value="data-real">
+              <SupabaseLaporan />
+            </TabsContent>
             <TabsContent value="user">
               <SupabaseDataMaster />
             </TabsContent>
@@ -47,23 +59,6 @@ export default function AppContent({ currentPage }: AppContentProps) {
             </TabsContent>
             <TabsContent value="bukan-leads">
               <SupabaseDataMaster />
-            </TabsContent>
-          </Tabs>
-        );
-      case 'data-prospek':
-        return <SupabaseProspekTable />;
-      case 'laporan':
-        return (
-          <Tabs defaultValue="analisis" className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="analisis">Analisis & Chart</TabsTrigger>
-              <TabsTrigger value="data-real">Data Real</TabsTrigger>
-            </TabsList>
-            <TabsContent value="analisis">
-              <Laporan />
-            </TabsContent>
-            <TabsContent value="data-real">
-              <SupabaseLaporan />
             </TabsContent>
           </Tabs>
         );
