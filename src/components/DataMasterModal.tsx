@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,7 @@ interface DataMasterModalProps {
 }
 
 export function DataMasterModal({ isOpen, onClose, data, type, mode, onSave }: DataMasterModalProps) {
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState<any>({});
 
   useEffect(() => {
     if (mode === 'edit' && data) {
@@ -45,7 +46,7 @@ export function DataMasterModal({ isOpen, onClose, data, type, mode, onSave }: D
               <Label htmlFor="nama">Nama Admin</Label>
               <Input
                 id="nama"
-                value={formData.nama || ''}
+                value={formData?.nama || ''}
                 onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
                 required
               />
@@ -55,14 +56,14 @@ export function DataMasterModal({ isOpen, onClose, data, type, mode, onSave }: D
               <Input
                 id="email"
                 type="email"
-                value={formData.email || ''}
+                value={formData?.email || ''}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
               />
             </div>
             <div>
               <Label htmlFor="role">Role</Label>
-              <Select value={formData.role || ''} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+              <Select value={formData?.role || ''} onValueChange={(value) => setFormData({ ...formData, role: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih Role" />
                 </SelectTrigger>
@@ -80,7 +81,7 @@ export function DataMasterModal({ isOpen, onClose, data, type, mode, onSave }: D
             <Label htmlFor="layanan">Layanan</Label>
             <Input
               id="layanan"
-              value={formData.layanan || ''}
+              value={formData?.layanan || ''}
               onChange={(e) => setFormData({ ...formData, layanan: e.target.value })}
               required
             />
@@ -92,7 +93,7 @@ export function DataMasterModal({ isOpen, onClose, data, type, mode, onSave }: D
             <Label htmlFor="kode">Kode Ads</Label>
             <Input
               id="kode"
-              value={formData.kode || ''}
+              value={formData?.kode || ''}
               onChange={(e) => setFormData({ ...formData, kode: e.target.value })}
               required
             />
@@ -104,7 +105,7 @@ export function DataMasterModal({ isOpen, onClose, data, type, mode, onSave }: D
             <Label htmlFor="sumber">Sumber Leads</Label>
             <Input
               id="sumber"
-              value={formData.sumber || ''}
+              value={formData?.sumber || ''}
               onChange={(e) => setFormData({ ...formData, sumber: e.target.value })}
               required
             />
@@ -116,7 +117,7 @@ export function DataMasterModal({ isOpen, onClose, data, type, mode, onSave }: D
             <Label htmlFor="tipe">Tipe Faskes</Label>
             <Input
               id="tipe"
-              value={formData.tipe || ''}
+              value={formData?.tipe || ''}
               onChange={(e) => setFormData({ ...formData, tipe: e.target.value })}
               required
             />
@@ -128,7 +129,7 @@ export function DataMasterModal({ isOpen, onClose, data, type, mode, onSave }: D
             <Label htmlFor="status">Status Leads</Label>
             <Input
               id="status"
-              value={formData.status || ''}
+              value={formData?.status || ''}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
               required
             />
@@ -140,7 +141,7 @@ export function DataMasterModal({ isOpen, onClose, data, type, mode, onSave }: D
             <Label htmlFor="alasan">Alasan Bukan Leads</Label>
             <Input
               id="alasan"
-              value={formData.alasan || ''}
+              value={formData?.alasan || ''}
               onChange={(e) => setFormData({ ...formData, alasan: e.target.value })}
               required
             />

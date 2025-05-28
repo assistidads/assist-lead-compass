@@ -14,8 +14,8 @@ interface ProspekFormProps {
 }
 
 // Sample data for edit mode
-const sampleProspekData = {
-  1: {
+const sampleProspekData: Record<string, any> = {
+  '1': {
     tanggalProspek: '2024-01-15',
     sumberLeads: 'Meta Ads',
     kodeAds: 'META',
@@ -47,8 +47,8 @@ export function ProspekForm({ isEdit = false, prospekId }: ProspekFormProps) {
   } = useProspekForm();
 
   useEffect(() => {
-    if (isEdit && prospekId && sampleProspekData[prospekId as keyof typeof sampleProspekData]) {
-      const existingData = sampleProspekData[prospekId as keyof typeof sampleProspekData];
+    if (isEdit && prospekId && sampleProspekData[prospekId]) {
+      const existingData = sampleProspekData[prospekId];
       setFormData(existingData);
     }
   }, [isEdit, prospekId, setFormData]);
