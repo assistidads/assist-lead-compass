@@ -16,7 +16,40 @@ export default function AppContent({ currentPage }: AppContentProps) {
       case 'dashboard':
         return <Dashboard />;
       case 'data-master':
-        return <SupabaseDataMaster />;
+        return (
+          <Tabs defaultValue="user" className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="user">User</TabsTrigger>
+              <TabsTrigger value="layanan">Layanan</TabsTrigger>
+              <TabsTrigger value="kode-ads">Kode Ads</TabsTrigger>
+              <TabsTrigger value="sumber-leads">Sumber Leads</TabsTrigger>
+              <TabsTrigger value="tipe-faskes">Tipe Faskes</TabsTrigger>
+              <TabsTrigger value="status-leads">Status Leads</TabsTrigger>
+              <TabsTrigger value="bukan-leads">Bukan Leads</TabsTrigger>
+            </TabsList>
+            <TabsContent value="user">
+              <SupabaseDataMaster type="user" />
+            </TabsContent>
+            <TabsContent value="layanan">
+              <SupabaseDataMaster type="layanan" />
+            </TabsContent>
+            <TabsContent value="kode-ads">
+              <SupabaseDataMaster type="kode-ads" />
+            </TabsContent>
+            <TabsContent value="sumber-leads">
+              <SupabaseDataMaster type="sumber-leads" />
+            </TabsContent>
+            <TabsContent value="tipe-faskes">
+              <SupabaseDataMaster type="tipe-faskes" />
+            </TabsContent>
+            <TabsContent value="status-leads">
+              <SupabaseDataMaster type="status-leads" />
+            </TabsContent>
+            <TabsContent value="bukan-leads">
+              <SupabaseDataMaster type="bukan-leads" />
+            </TabsContent>
+          </Tabs>
+        );
       case 'data-prospek':
         return <SupabaseProspekTable />;
       case 'laporan':
