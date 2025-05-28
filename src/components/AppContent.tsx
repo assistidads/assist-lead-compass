@@ -2,8 +2,8 @@
 import { Dashboard } from './Dashboard';
 import { DataMaster } from './DataMaster';
 import { SupabaseDataMaster } from './SupabaseDataMaster';
-import { ProspekDataTable } from './ProspekDataTable';
-import { SupabaseProspekDataTable } from './SupabaseProspekDataTable';
+import { ProspekTable } from './ProspekTable';
+import { SupabaseProspekTable } from './SupabaseProspekTable';
 import { Laporan } from './Laporan';
 import { SupabaseLaporan } from './SupabaseLaporan';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -40,10 +40,10 @@ export default function AppContent({ currentPage }: AppContentProps) {
               <TabsTrigger value="demo">Data Prospek (Demo)</TabsTrigger>
             </TabsList>
             <TabsContent value="supabase">
-              <SupabaseProspekDataTable />
+              <SupabaseProspekTable />
             </TabsContent>
             <TabsContent value="demo">
-              <ProspekDataTable />
+              <ProspekTable />
             </TabsContent>
           </Tabs>
         );
