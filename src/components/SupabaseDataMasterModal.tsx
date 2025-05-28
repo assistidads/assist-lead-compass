@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ interface SupabaseDataMasterModalProps {
   isOpen: boolean;
   onClose: () => void;
   data: any;
-  type: 'user' | 'layanan' | 'kode-ads' | 'sumber-leads' | 'tipe-faskes' | 'status-leads' | 'bukan-leads';
+  type: 'user' | 'layanan' | 'kode-ads' | 'sumber-leads' | 'tipe-faskes' | 'bukan-leads';
   mode: 'add' | 'edit';
   onSave: (data: any) => void;
 }
@@ -233,18 +234,6 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
             </Select>
           </div>
         );
-      case 'status-leads':
-        return (
-          <div>
-            <Label htmlFor="nama">Status Leads</Label>
-            <Input
-              id="nama"
-              value={formData?.nama || ''}
-              onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-              required
-            />
-          </div>
-        );
       case 'bukan-leads':
         return (
           <div>
@@ -269,7 +258,6 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
       'kode-ads': 'Kode Ads',
       'sumber-leads': 'Sumber Leads',
       'tipe-faskes': 'Tipe Faskes',
-      'status-leads': 'Status Leads',
       'bukan-leads': 'Bukan Leads'
     };
     return `${mode === 'add' ? 'Tambah' : 'Edit'} ${typeNames[type]}`;

@@ -103,17 +103,27 @@ export function useSupabaseData() {
     }
   };
 
-  // Fetch users data (untuk admin)
+  // Fetch users data with proper admin access
   const fetchUsersData = async () => {
-    if (!user) return;
+    if (!user || !profile) return;
 
+    console.log('Fetching users data. Current user profile:', profile);
+    
     try {
+      // Admin dapat melihat semua user profiles
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .order('full_name');
 
-      if (error) throw error;
+      console.log('Users data query result:', { data, error });
+
+      if (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+      }
+      
+      console.log('Setting users data:', data);
       setUsersData(data || []);
     } catch (error) {
       console.error('Error fetching users data:', error);
@@ -193,7 +203,10 @@ export function useSupabaseData() {
       if (kodeAdsRes.data) setKodeAdsData(kodeAdsRes.data);
       if (sumberLeadsRes.data) setSumberLeadsData(sumberLeadsRes.data);
       if (alasanRes.data) setAlasanBukanLeadsData(alasanRes.data);
-      if (usersRes.data) setUsersData(usersRes.data);
+      if (usersRes.data) {
+        console.log('Setting users data from dropdown fetch:', usersRes.data);
+        setUsersData(usersRes.data);
+      }
 
     } catch (error) {
       console.error('Error fetching dropdown data:', error);
@@ -317,8 +330,11 @@ export function useSupabaseData() {
 
   useEffect(() => {
     if (user && profile) {
+      console.log('useEffect triggered. User:', user.id, 'Profile role:', profile.role);
       fetchProspekData();
       fetchMasterDataForDropdowns();
+      
+      // Force fetch users data for admin
       if (profile.role === 'admin') {
         fetchMasterData();
         fetchUsersData();
@@ -338,6 +354,7 @@ export function useSupabaseData() {
     updateProspek,
     deleteProspek,
     refetchData: () => {
+      console.log('refetchData called. Profile role:', profile?.role);
       fetchProspekData();
       fetchMasterDataForDropdowns();
       if (profile?.role === 'admin') {

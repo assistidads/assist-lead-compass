@@ -12,7 +12,7 @@ import { toast } from '@/hooks/use-toast';
 import { SupabaseDataMasterModal } from './SupabaseDataMasterModal';
 import { SupabaseDataMasterDeleteDialog } from './SupabaseDataMasterDeleteDialog';
 
-type DataType = 'user' | 'layanan' | 'kode-ads' | 'sumber-leads' | 'bukan-leads';
+type DataType = 'user' | 'layanan' | 'kode-ads' | 'sumber-leads' | 'tipe-faskes' | 'bukan-leads';
 
 export function SupabaseDataMaster() {
   const { layananData, kodeAdsData, sumberLeadsData, alasanBukanLeadsData, usersData, refetchData } = useSupabaseData();
@@ -128,6 +128,7 @@ export function SupabaseDataMaster() {
       case 'layanan': return 'layanan_assist';
       case 'kode-ads': return 'kode_ads';
       case 'sumber-leads': return 'sumber_leads';
+      case 'tipe-faskes': return 'tipe_faskes';
       case 'bukan-leads': return 'alasan_bukan_leads';
       default: return '';
     }
@@ -139,6 +140,7 @@ export function SupabaseDataMaster() {
       case 'layanan': return layananData;
       case 'kode-ads': return kodeAdsData;
       case 'sumber-leads': return sumberLeadsData;
+      case 'tipe-faskes': return [];
       case 'bukan-leads': return alasanBukanLeadsData;
       default: return [];
     }
@@ -170,6 +172,7 @@ export function SupabaseDataMaster() {
     { id: 'layanan' as DataType, label: 'Layanan' },
     { id: 'kode-ads' as DataType, label: 'Kode Ads' },
     { id: 'sumber-leads' as DataType, label: 'Sumber Leads' },
+    { id: 'tipe-faskes' as DataType, label: 'Tipe Faskes' },
     { id: 'bukan-leads' as DataType, label: 'Bukan Leads' }
   ];
 
