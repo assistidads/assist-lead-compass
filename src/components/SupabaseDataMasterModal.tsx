@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -44,14 +43,18 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
       if (type === 'user') {
         // Handle user creation/update differently since it involves auth
         if (mode === 'add') {
-          // For adding new user, we need to create auth user first
-          const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          // Generate a temporary password
+          const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
+          
+          // Create user using signup
+          const { data: authData, error: authError } = await supabase.auth.signUp({
             email: formData.email,
-            password: 'TempPassword123!', // You might want to generate a random password
-            email_confirm: true,
-            user_metadata: {
-              full_name: formData.full_name,
-              role: formData.role
+            password: tempPassword,
+            options: {
+              data: {
+                full_name: formData.full_name,
+                role: formData.role
+              }
             }
           });
 
@@ -68,7 +71,7 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
           // Profile will be created automatically by trigger
           toast({
             title: "Berhasil",
-            description: "User berhasil ditambahkan",
+            description: `User berhasil ditambahkan dengan password sementara: ${tempPassword}`,
           });
         } else {
           // For editing, update the profile directly
