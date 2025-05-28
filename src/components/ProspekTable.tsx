@@ -1,12 +1,13 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ProspekFilter } from './ProspekFilter';
 import { ProspekFilterSummary } from './ProspekFilterSummary';
 import { ProspekDataTable } from './ProspekDataTable';
 import { ProspekData } from '@/types/prospek';
+import { toast } from '@/hooks/use-toast';
 
 let prospekData: ProspekData[] = [
   {
@@ -164,12 +165,31 @@ export function ProspekTable() {
   };
 
   const handleDataChange = () => {
+    console.log('Data changed, refreshing table');
     setRefreshKey(prev => prev + 1);
   };
 
   const deleteProspek = (id: number) => {
+    console.log('Deleting prospek with id:', id);
+    const originalLength = prospekData.length;
     prospekData = prospekData.filter(item => item.id !== id);
-    handleDataChange();
+    
+    if (prospekData.length < originalLength) {
+      console.log('Prospek deleted successfully');
+      toast({
+        title: "Prospek Berhasil Dihapus",
+        description: "Data prospek telah dihapus dari database",
+        variant: "destructive",
+      });
+      handleDataChange();
+    } else {
+      console.log('Failed to delete prospek');
+      toast({
+        title: "Error",
+        description: "Gagal menghapus data prospek",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

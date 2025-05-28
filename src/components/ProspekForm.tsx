@@ -29,7 +29,41 @@ const sampleProspekData: Record<string, any> = {
     namaFaskes: 'RS Prima Medika',
     tipeFaskes: 'Rumah Sakit',
     provinsi: '31', // DKI Jakarta
-    kota: '3171', // Jakarta Pusat
+    kota: 'Jakarta Pusat',
+    picLeads: 'CS Support 1'
+  },
+  '2': {
+    tanggalProspek: '2024-01-15',
+    sumberLeads: 'Google Ads',
+    kodeAds: 'GOOG',
+    idAds: '3',
+    namaProspek: 'dr. Siti Nurhaliza',
+    noWhatsApp: '082345678901',
+    statusLeads: 'Dihubungi',
+    bukanLeads: '',
+    keteranganBukanLeads: '',
+    layananAssist: 'Telemedicine',
+    namaFaskes: 'Klinik Sehat Bersama',
+    tipeFaskes: 'Klinik',
+    provinsi: '32', // Jawa Barat
+    kota: 'Bandung',
+    picLeads: 'CS Support 2'
+  },
+  '3': {
+    tanggalProspek: '2024-01-16',
+    sumberLeads: 'Referral',
+    kodeAds: '',
+    idAds: '',
+    namaProspek: 'Dr. Budi Santoso',
+    noWhatsApp: '083456789012',
+    statusLeads: 'Bukan Leads',
+    bukanLeads: 'Budget Tidak Sesuai',
+    keteranganBukanLeads: 'Menginginkan harga lebih murah',
+    layananAssist: 'EMR',
+    namaFaskes: 'Puskesmas Sukamaju',
+    tipeFaskes: 'Puskesmas',
+    provinsi: '35', // Jawa Timur
+    kota: 'Surabaya',
     picLeads: 'CS Support 1'
   }
 };
@@ -47,9 +81,19 @@ export function ProspekForm({ isEdit = false, prospekId }: ProspekFormProps) {
   } = useProspekForm();
 
   useEffect(() => {
+    console.log('ProspekForm mounted:', { isEdit, prospekId });
+    
     if (isEdit && prospekId && sampleProspekData[prospekId]) {
       const existingData = sampleProspekData[prospekId];
+      console.log('Loading existing data for edit:', existingData);
       setFormData(existingData);
+    } else if (isEdit && prospekId) {
+      console.log('No data found for prospekId:', prospekId);
+      toast({
+        title: "Data tidak ditemukan",
+        description: "Data prospek yang ingin diedit tidak ditemukan",
+        variant: "destructive",
+      });
     }
   }, [isEdit, prospekId, setFormData]);
 

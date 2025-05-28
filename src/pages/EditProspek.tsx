@@ -10,6 +10,11 @@ const EditProspek = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
+  const handleBack = () => {
+    console.log('Navigating back to data prospek from edit');
+    navigate('/?tab=data-prospek');
+  };
+
   return (
     <ProtectedRoute>
       <Layout>
@@ -18,7 +23,7 @@ const EditProspek = () => {
             <div className="flex items-center gap-4">
               <Button 
                 variant="outline" 
-                onClick={() => navigate('/?tab=data-prospek')}
+                onClick={handleBack}
                 className="flex items-center gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
