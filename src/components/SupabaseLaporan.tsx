@@ -231,30 +231,26 @@ export function SupabaseLaporan() {
         <MetricCard
           title="Total Prospek"
           value={totalProspek}
-          change="+0%"
-          trend="up"
-          icon="users"
+          change={0}
+          icon={undefined}
         />
         <MetricCard
           title="Total Leads"
           value={totalLeads}
-          change="+0%"
-          trend="up"
-          icon="user-check"
+          change={0}
+          icon={undefined}
         />
         <MetricCard
           title="Bukan Leads"
           value={totalBukanLeads}
-          change="+0%"
-          trend="down"
-          icon="user-x"
+          change={0}
+          icon={undefined}
         />
         <MetricCard
           title="Conversion Rate"
           value={`${conversionRate}%`}
-          change="+0%"
-          trend="up"
-          icon="trending-up"
+          change={0}
+          icon={undefined}
         />
       </div>
 
