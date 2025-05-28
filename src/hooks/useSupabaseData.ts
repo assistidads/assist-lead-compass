@@ -17,12 +17,12 @@ export interface SupabaseProspek {
   kota: string;
   id_ads?: string;
   created_at: string;
-  sumber_leads?: { nama: string };
-  kode_ads?: { kode: string };
-  layanan_assist?: { nama: string };
-  alasan_bukan_leads?: { alasan: string };
-  pic_leads?: { full_name: string };
-  created_by_profile?: { full_name: string };
+  sumber_leads?: { nama: string } | null;
+  kode_ads?: { kode: string } | null;
+  layanan_assist?: { nama: string } | null;
+  alasan_bukan_leads?: { alasan: string } | null;
+  pic_leads?: { full_name: string } | null;
+  created_by_profile?: { full_name: string } | null;
 }
 
 export interface DataMasterItem {
@@ -63,7 +63,17 @@ export function useSupabaseData() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProspekData(data || []);
+      
+      // Type assertion to handle the Supabase response structure
+      setProspekData((data as any[])?.map(item => ({
+        ...item,
+        sumber_leads: item.sumber_leads || null,
+        kode_ads: item.kode_ads || null,
+        layanan_assist: item.layanan_assist || null,
+        alasan_bukan_leads: item.alasan_bukan_leads || null,
+        pic_leads: item.pic_leads || null,
+        created_by_profile: item.created_by_profile || null
+      })) || []);
     } catch (error) {
       console.error('Error fetching prospek data:', error);
       toast({

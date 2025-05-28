@@ -1,6 +1,6 @@
 
 import { Layout } from '@/components/Layout';
-import { AppContent } from '@/components/AppContent';
+import AppContent from '@/components/AppContent';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 const Index = () => {
