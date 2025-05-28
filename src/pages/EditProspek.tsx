@@ -28,7 +28,7 @@ const EditProspek = () => {
                 Edit Prospek
               </h1>
             </div>
-            <ProspekForm />
+            <ProspekForm isEdit={true} prospekId={id} />
           </div>
         )}
       </Layout>

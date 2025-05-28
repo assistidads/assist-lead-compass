@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,14 +30,15 @@ const organikTotal = organikSources.reduce((acc, item) => ({
   value: acc.value + item.value
 }), { prospek: 0, leads: 0, value: 0 });
 
-const organikCtr = organikTotal.prospek > 0 ? (organikTotal.leads / organikTotal.prospek) * 100 : 0;
+// Fix CTR calculation for Organik
+const organikCtr = organikTotal.prospek > 0 ? Math.round((organikTotal.leads / organikTotal.prospek) * 100 * 10) / 10 : 0;
 
 const organikData = {
   name: 'Organik',
   value: organikTotal.value,
   prospek: organikTotal.prospek,
   leads: organikTotal.leads,
-  ctr: Math.round(organikCtr * 10) / 10,
+  ctr: organikCtr,
   breakdown: organikSources
 };
 

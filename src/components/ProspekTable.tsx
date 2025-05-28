@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -9,7 +8,7 @@ import { ProspekFilterSummary } from './ProspekFilterSummary';
 import { ProspekDataTable } from './ProspekDataTable';
 import { ProspekData } from '@/types/prospek';
 
-const prospekData: ProspekData[] = [
+let prospekData: ProspekData[] = [
   {
     id: 1,
     createdDate: '15/01/2024 09:30',
@@ -168,6 +167,11 @@ export function ProspekTable() {
     setRefreshKey(prev => prev + 1);
   };
 
+  const deleteProspek = (id: number) => {
+    prospekData = prospekData.filter(item => item.id !== id);
+    handleDataChange();
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Actions */}
@@ -236,6 +240,7 @@ export function ProspekTable() {
         setCurrentPage={setCurrentPage}
         itemsPerPage={itemsPerPage}
         onDataChange={handleDataChange}
+        onDelete={deleteProspek}
       />
     </div>
   );

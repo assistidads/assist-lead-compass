@@ -20,6 +20,7 @@ interface ProspekDataTableProps {
   setCurrentPage: (page: number) => void;
   itemsPerPage: number;
   onDataChange?: () => void;
+  onDelete?: (id: number) => void;
 }
 
 export function ProspekDataTable({
@@ -28,7 +29,8 @@ export function ProspekDataTable({
   currentPage,
   setCurrentPage,
   itemsPerPage,
-  onDataChange
+  onDataChange,
+  onDelete
 }: ProspekDataTableProps) {
   const navigate = useNavigate();
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -57,8 +59,9 @@ export function ProspekDataTable({
   };
 
   const confirmDelete = () => {
-    if (selectedProspek) {
-      // Simulate delete operation
+    if (selectedProspek && onDelete) {
+      onDelete(selectedProspek.id);
+      
       toast({
         title: "Prospek Berhasil Dihapus",
         description: `Data prospek ${selectedProspek.namaProspek} telah dihapus`,
@@ -68,7 +71,6 @@ export function ProspekDataTable({
       setDeleteDialogOpen(false);
       setSelectedProspek(null);
       
-      // Call onDataChange to refresh data if provided
       if (onDataChange) {
         onDataChange();
       }
