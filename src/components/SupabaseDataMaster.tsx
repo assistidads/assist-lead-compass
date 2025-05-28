@@ -6,13 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Edit, Trash2 } from 'lucide-react';
-import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { useSupabaseData, DataMasterItem, UserProfile } from '@/hooks/useSupabaseData';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { SupabaseDataMasterModal } from './SupabaseDataMasterModal';
 import { SupabaseDataMasterDeleteDialog } from './SupabaseDataMasterDeleteDialog';
 
-type DataType = 'user' | 'layanan' | 'kode-ads' | 'sumber-leads' | 'tipe-faskes' | 'status-leads' | 'bukan-leads';
+type DataType = 'user' | 'layanan' | 'kode-ads' | 'sumber-leads' | 'bukan-leads';
 
 export function SupabaseDataMaster() {
   const { layananData, kodeAdsData, sumberLeadsData, alasanBukanLeadsData, usersData, refetchData } = useSupabaseData();
@@ -52,7 +52,7 @@ export function SupabaseDataMaster() {
       
       if (modalMode === 'add') {
         const { error } = await supabase
-          .from(tableName)
+          .from(tableName as any)
           .insert([data]);
         
         if (error) throw error;
@@ -63,7 +63,7 @@ export function SupabaseDataMaster() {
         });
       } else {
         const { error } = await supabase
-          .from(tableName)
+          .from(tableName as any)
           .update(data)
           .eq('id', selectedItem.id);
         
@@ -99,7 +99,7 @@ export function SupabaseDataMaster() {
       } else {
         const tableName = getTableName(activeTab);
         const { error } = await supabase
-          .from(tableName)
+          .from(tableName as any)
           .delete()
           .eq('id', selectedItem.id);
         
@@ -133,7 +133,7 @@ export function SupabaseDataMaster() {
     }
   };
 
-  const getCurrentData = () => {
+  const getCurrentData = (): (DataMasterItem | UserProfile)[] => {
     switch (activeTab) {
       case 'user': return usersData;
       case 'layanan': return layananData;
@@ -147,17 +147,21 @@ export function SupabaseDataMaster() {
   const filteredData = getCurrentData().filter(item => {
     const searchValue = searchTerm.toLowerCase();
     if (activeTab === 'user') {
+      const userItem = item as UserProfile;
       return (
-        item.full_name?.toLowerCase().includes(searchValue) ||
-        item.email?.toLowerCase().includes(searchValue) ||
-        item.role?.toLowerCase().includes(searchValue)
+        userItem.full_name?.toLowerCase().includes(searchValue) ||
+        userItem.email?.toLowerCase().includes(searchValue) ||
+        userItem.role?.toLowerCase().includes(searchValue)
       );
     } else if (activeTab === 'kode-ads') {
-      return item.kode?.toLowerCase().includes(searchValue);
+      const kodeItem = item as DataMasterItem & { kode?: string };
+      return kodeItem.kode?.toLowerCase().includes(searchValue);
     } else if (activeTab === 'bukan-leads') {
-      return item.alasan?.toLowerCase().includes(searchValue);
+      const alasanItem = item as DataMasterItem & { alasan?: string };
+      return alasanItem.alasan?.toLowerCase().includes(searchValue);
     } else {
-      return item.nama?.toLowerCase().includes(searchValue);
+      const namaItem = item as DataMasterItem & { nama?: string };
+      return namaItem.nama?.toLowerCase().includes(searchValue);
     }
   });
 
@@ -191,36 +195,39 @@ export function SupabaseDataMaster() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredData.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.full_name}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>
-                  <Badge className={getRoleBadgeColor(user.role)}>
-                    {user.role === 'admin' ? 'Admin' : 'CS Support'}
-                  </Badge>
-                </TableCell>
-                <TableCell>{new Date(user.created_at).toLocaleDateString('id-ID')}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(user)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(user)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {filteredData.map((user) => {
+              const userItem = user as UserProfile;
+              return (
+                <TableRow key={userItem.id}>
+                  <TableCell className="font-medium">{userItem.full_name}</TableCell>
+                  <TableCell>{userItem.email}</TableCell>
+                  <TableCell>
+                    <Badge className={getRoleBadgeColor(userItem.role)}>
+                      {userItem.role === 'admin' ? 'Admin' : 'CS Support'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{new Date(userItem.created_at).toLocaleDateString('id-ID')}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(userItem)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(userItem)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       );
@@ -241,37 +248,52 @@ export function SupabaseDataMaster() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredData.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell className="font-medium">
-                {activeTab === 'kode-ads' ? item.kode : 
-                 activeTab === 'bukan-leads' ? item.alasan : item.nama}
-              </TableCell>
-              <TableCell>{new Date(item.created_at).toLocaleDateString('id-ID')}</TableCell>
-              <TableCell>{new Date(item.updated_at).toLocaleDateString('id-ID')}</TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(item)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(item)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
+          {filteredData.map((item) => {
+            const dataItem = item as DataMasterItem & { kode?: string; alasan?: string; nama?: string };
+            return (
+              <TableRow key={dataItem.id}>
+                <TableCell className="font-medium">
+                  {activeTab === 'kode-ads' ? dataItem.kode : 
+                   activeTab === 'bukan-leads' ? dataItem.alasan : dataItem.nama}
+                </TableCell>
+                <TableCell>{new Date(dataItem.created_at).toLocaleDateString('id-ID')}</TableCell>
+                <TableCell>{new Date(dataItem.updated_at).toLocaleDateString('id-ID')}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(dataItem)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(dataItem)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     );
+  };
+
+  const getItemName = (item: any) => {
+    if (activeTab === 'user') {
+      return (item as UserProfile).full_name;
+    } else if (activeTab === 'kode-ads') {
+      return (item as DataMasterItem & { kode?: string }).kode;
+    } else if (activeTab === 'bukan-leads') {
+      return (item as DataMasterItem & { alasan?: string }).alasan;
+    } else {
+      return (item as DataMasterItem & { nama?: string }).nama;
+    }
   };
 
   return (
@@ -348,15 +370,7 @@ export function SupabaseDataMaster() {
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleConfirmDelete}
-        itemName={
-          selectedItem ? (
-            activeTab === 'user' ? selectedItem.full_name :
-            activeTab === 'kode-ads' ? selectedItem.kode :
-            activeTab === 'bukan-leads' ? selectedItem.alasan :
-            selectedItem.nama
-          ) : ''
-        }
-        type={activeTab}
+        itemName={selectedItem ? getItemName(selectedItem) : ''}
       />
     </div>
   );

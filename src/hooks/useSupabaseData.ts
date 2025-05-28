@@ -105,7 +105,7 @@ export function useSupabaseData() {
 
   // Fetch users data (untuk admin)
   const fetchUsersData = async () => {
-    if (!user || profile?.role !== 'admin') return;
+    if (!user) return;
 
     try {
       const { data, error } = await supabase

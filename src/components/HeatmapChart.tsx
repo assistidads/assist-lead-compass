@@ -109,12 +109,6 @@ export function HeatmapChart({ data, title = "Heatmap Aktivitas Prospek Masuk", 
             </div>
           </div>
         </div>
-
-        <style jsx>{`
-          .grid-cols-25 {
-            grid-template-columns: 80px repeat(24, 1fr);
-          }
-        `}</style>
       </CardContent>
     </Card>
   );
