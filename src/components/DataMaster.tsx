@@ -2,10 +2,11 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import { DataMasterModal } from './DataMasterModal';
+import { DataMasterDeleteDialog } from './DataMasterDeleteDialog';
 
 // Sample data for each master data type
 const userData = [
@@ -60,12 +61,57 @@ const bukanLeadsData = [
 
 export function DataMaster() {
   const [activeTab, setActiveTab] = useState('user');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [modalData, setModalData] = useState(null);
+  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
+  const [deleteItem, setDeleteItem] = useState<{ id: number; name: string } | null>(null);
 
-  const renderTable = (data: any[], columns: string[], title: string) => (
+  const handleAdd = () => {
+    setModalData(null);
+    setModalMode('add');
+    setModalOpen(true);
+  };
+
+  const handleEdit = (item: any) => {
+    setModalData(item);
+    setModalMode('edit');
+    setModalOpen(true);
+  };
+
+  const handleDelete = (item: any) => {
+    const getName = () => {
+      if (item.nama) return item.nama;
+      if (item.layanan) return item.layanan;
+      if (item.kode) return item.kode;
+      if (item.sumber) return item.sumber;
+      if (item.tipe) return item.tipe;
+      if (item.status) return item.status;
+      if (item.alasan) return item.alasan;
+      return 'Item';
+    };
+    
+    setDeleteItem({ id: item.id, name: getName() });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleSave = (data: any) => {
+    console.log('Saving data:', data);
+    // Here you would typically save to a database
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteItem) {
+      console.log('Deleting item:', deleteItem);
+      // Here you would typically delete from a database
+    }
+  };
+
+  const renderTable = (data: any[], columns: string[], title: string, type: string) => (
     <Card className="bg-white border border-gray-200">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-semibold text-gray-900">{title}</CardTitle>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleAdd}>
           <Plus className="h-4 w-4 mr-2" />
           Tambah
         </Button>
@@ -88,10 +134,15 @@ export function DataMaster() {
                 ))}
                 <TableCell>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-red-600 hover:text-red-700"
+                      onClick={() => handleDelete(item)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -123,33 +174,49 @@ export function DataMaster() {
         </TabsList>
 
         <TabsContent value="user">
-          {renderTable(userData, ['Nama Admin', 'Email', 'Role'], 'Data User')}
+          {renderTable(userData, ['Nama Admin', 'Email', 'Role'], 'Data User', 'user')}
         </TabsContent>
 
         <TabsContent value="layanan">
-          {renderTable(layananData, ['Layanan'], 'Layanan Assist')}
+          {renderTable(layananData, ['Layanan'], 'Layanan Assist', 'layanan')}
         </TabsContent>
 
         <TabsContent value="kode-ads">
-          {renderTable(kodeAdsData, ['Kode Ads'], 'Kode Ads')}
+          {renderTable(kodeAdsData, ['Kode Ads'], 'Kode Ads', 'kode-ads')}
         </TabsContent>
 
         <TabsContent value="sumber">
-          {renderTable(sumberLeadsData, ['Sumber Leads'], 'Sumber Leads')}
+          {renderTable(sumberLeadsData, ['Sumber Leads'], 'Sumber Leads', 'sumber')}
         </TabsContent>
 
         <TabsContent value="tipe-faskes">
-          {renderTable(tipeFaskesData, ['Tipe Faskes'], 'Tipe Faskes')}
+          {renderTable(tipeFaskesData, ['Tipe Faskes'], 'Tipe Faskes', 'tipe-faskes')}
         </TabsContent>
 
         <TabsContent value="status">
-          {renderTable(statusLeadsData, ['Status Leads'], 'Status Leads')}
+          {renderTable(statusLeadsData, ['Status Leads'], 'Status Leads', 'status')}
         </TabsContent>
 
         <TabsContent value="bukan-leads">
-          {renderTable(bukanLeadsData, ['Alasan Bukan Leads'], 'Bukan Leads')}
+          {renderTable(bukanLeadsData, ['Alasan Bukan Leads'], 'Bukan Leads', 'bukan-leads')}
         </TabsContent>
       </Tabs>
+
+      <DataMasterModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        data={modalData}
+        type={activeTab as any}
+        mode={modalMode}
+        onSave={handleSave}
+      />
+
+      <DataMasterDeleteDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        itemName={deleteItem?.name || ''}
+      />
     </div>
   );
 }

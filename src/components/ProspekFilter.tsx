@@ -217,6 +217,13 @@ export function ProspekFilter({
               <Button onClick={resetFilters} variant="outline">
                 Reset Filter
               </Button>
+              <Button 
+                onClick={() => setIsFilterOpen(false)} 
+                variant="outline"
+                className="bg-red-600 hover:bg-red-700 text-white border-red-600 hover:border-red-700"
+              >
+                Close
+              </Button>
               <Button onClick={() => setIsFilterOpen(false)} className="bg-blue-600 hover:bg-blue-700">
                 Terapkan Filter
               </Button>
