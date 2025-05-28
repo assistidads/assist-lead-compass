@@ -158,7 +158,7 @@ export function Dashboard() {
             </table>
           </div>
         </CardContent>
-      </div>
+      </Card>
     </div>
   );
 }
