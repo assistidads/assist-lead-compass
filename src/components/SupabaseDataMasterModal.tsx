@@ -221,17 +221,12 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
         return (
           <div>
             <Label htmlFor="nama">Tipe Faskes</Label>
-            <Select value={formData?.nama || ''} onValueChange={(value) => setFormData({ ...formData, nama: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih Tipe Faskes" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Rumah Sakit">Rumah Sakit</SelectItem>
-                <SelectItem value="Puskesmas">Puskesmas</SelectItem>
-                <SelectItem value="Klinik">Klinik</SelectItem>
-                <SelectItem value="Lab Kesehatan">Lab Kesehatan</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              id="nama"
+              value={formData?.nama || ''}
+              onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
+              required
+            />
           </div>
         );
       case 'bukan-leads':
