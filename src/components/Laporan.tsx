@@ -1,10 +1,10 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, FunnelChart, Funnel, LabelList } from 'recharts';
 import { Download, FileText, Activity } from 'lucide-react';
 
@@ -17,10 +17,50 @@ const sumberLeadsData = [
 ];
 
 const kodeAdsData = [
-  { name: 'META', value: 30, prospek: 150, leads: 45, ctr: 30 },
-  { name: 'GOOG', value: 25, prospek: 120, leads: 30, ctr: 25 },
-  { name: 'TKTK', value: 20, prospek: 90, leads: 18, ctr: 20 },
-  { name: 'FB01', value: 15, prospek: 75, leads: 11, ctr: 15 },
+  { 
+    name: 'META', 
+    value: 30, 
+    prospek: 150, 
+    leads: 45, 
+    ctr: 30,
+    idAds: [
+      { id: 'META-001', prospek: 80, leads: 25, ctr: 31.25 },
+      { id: 'META-002', prospek: 70, leads: 20, ctr: 28.57 }
+    ]
+  },
+  { 
+    name: 'GOOG', 
+    value: 25, 
+    prospek: 120, 
+    leads: 30, 
+    ctr: 25,
+    idAds: [
+      { id: 'GOOG-001', prospek: 60, leads: 15, ctr: 25 },
+      { id: 'GOOG-002', prospek: 40, leads: 10, ctr: 25 },
+      { id: 'GOOG-003', prospek: 20, leads: 5, ctr: 25 }
+    ]
+  },
+  { 
+    name: 'TKTK', 
+    value: 20, 
+    prospek: 90, 
+    leads: 18, 
+    ctr: 20,
+    idAds: [
+      { id: 'TKTK-001', prospek: 50, leads: 10, ctr: 20 },
+      { id: 'TKTK-002', prospek: 40, leads: 8, ctr: 20 }
+    ]
+  },
+  { 
+    name: 'FB01', 
+    value: 15, 
+    prospek: 75, 
+    leads: 11, 
+    ctr: 15,
+    idAds: [
+      { id: 'FB01-001', prospek: 75, leads: 11, ctr: 15 }
+    ]
+  },
 ];
 
 const layananAssistData = [
@@ -286,6 +326,78 @@ export function Laporan() {
     </Card>
   );
 
+  const renderKodeAdsAccordion = () => (
+    <Card className="bg-white border border-gray-200">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-lg font-semibold text-gray-900">Tabel Kode Ads</CardTitle>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            PNG
+          </Button>
+          <Button variant="outline" size="sm">
+            <FileText className="h-4 w-4 mr-2" />
+            PDF
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Accordion type="multiple" className="w-full">
+          {kodeAdsData.filter(item => item.idAds.length > 1).map((item, index) => (
+            <AccordionItem key={item.name} value={`item-${index}`}>
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex justify-between items-center w-full pr-4">
+                  <span className="font-medium">{item.name}</span>
+                  <div className="flex gap-8 text-sm">
+                    <span>Prospek: {item.prospek}</span>
+                    <span>Leads: {item.leads}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      item.ctr >= 30 ? 'bg-green-100 text-green-800' : 
+                      item.ctr >= 25 ? 'bg-yellow-100 text-yellow-800' : 
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      CTR: {item.ctr}%
+                    </span>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID Ads</TableHead>
+                      <TableHead className="text-right">Prospek</TableHead>
+                      <TableHead className="text-right">Leads</TableHead>
+                      <TableHead className="text-right">CTR Leads</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {item.idAds.map((ads) => (
+                      <TableRow key={ads.id}>
+                        <TableCell className="font-medium">{ads.id}</TableCell>
+                        <TableCell className="text-right">{ads.prospek}</TableCell>
+                        <TableCell className="text-right">{ads.leads}</TableCell>
+                        <TableCell className="text-right">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            ads.ctr >= 30 ? 'bg-green-100 text-green-800' : 
+                            ads.ctr >= 25 ? 'bg-yellow-100 text-yellow-800' : 
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {ads.ctr}%
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="space-y-6">
       {/* Filter Section */}
@@ -332,7 +444,7 @@ export function Laporan() {
         <TabsContent value="kode-ads" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {renderPieChart(kodeAdsData, 'Distribusi Kode Ads')}
-            {renderTable(kodeAdsData, 'Tabel Kode Ads')}
+            {renderKodeAdsAccordion()}
           </div>
         </TabsContent>
 
