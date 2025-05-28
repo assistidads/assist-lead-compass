@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Download } from 'lucide-react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { HeatmapChart } from './HeatmapChart';
 
 const COLORS = ['#2563eb', '#16a34a', '#eab308', '#dc2626', '#7c3aed'];
 
@@ -122,7 +123,30 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
   // Data untuk heatmap waktu/hari aktivitas prospek dan leads
   const heatmapData = useMemo(() => {
     const daysOfWeek = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const hoursOfDay = Array.from({ length: 24 }, (_, i) => i);
+    
+    // Analisis berdasarkan hari dalam seminggu dan jam
+    const heatmapMatrix: { day: string; hour: number; value: number; leads: number }[] = [];
+    
+    daysOfWeek.forEach(day => {
+      for (let hour = 0; hour < 24; hour++) {
+        const prospekCount = prospekData.filter(item => {
+          const date = new Date(item.tanggal_prospek);
+          return daysOfWeek[date.getDay()] === day && date.getHours() === hour;
+        }).length;
+
+        const leadsCount = prospekData.filter(item => {
+          const date = new Date(item.tanggal_prospek);
+          return daysOfWeek[date.getDay()] === day && date.getHours() === hour && item.status_leads === 'Leads';
+        }).length;
+
+        heatmapMatrix.push({
+          day,
+          hour,
+          value: prospekCount,
+          leads: leadsCount
+        });
+      }
+    });
 
     // Analisis berdasarkan hari dalam seminggu
     const dayActivity = daysOfWeek.map(day => {
@@ -144,27 +168,7 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
       };
     });
 
-    // Analisis berdasarkan jam (menggunakan created_at sebagai estimasi waktu input)
-    const hourActivity = hoursOfDay.map(hour => {
-      const hourProspekCount = prospekData.filter(item => {
-        const date = new Date(item.created_at);
-        return date.getHours() === hour;
-      }).length;
-
-      const hourLeadsCount = prospekData.filter(item => {
-        const date = new Date(item.created_at);
-        return date.getHours() === hour && item.status_leads === 'Leads';
-      }).length;
-
-      return {
-        name: `${hour.toString().padStart(2, '0')}:00`,
-        prospek: hourProspekCount,
-        leads: hourLeadsCount,
-        ctr: hourProspekCount > 0 ? parseFloat(((hourLeadsCount / hourProspekCount) * 100).toFixed(1)) : 0
-      };
-    });
-
-    return { dayActivity, hourActivity };
+    return { dayActivity, heatmapMatrix };
   }, [prospekData]);
 
   // Data untuk heatmap (contoh implementasi sederhana)
@@ -264,9 +268,8 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
         data = kotaKabupatenChartData;
         break;
       case 'heatmap':
-        // Heatmap waktu aktivitas - tampilkan chart hari dalam seminggu
-        data = heatmapData.dayActivity;
-        break;
+        // Return the new visual heatmap instead of bar chart
+        return <HeatmapChart data={heatmapData.heatmapMatrix} />;
       case 'performa-cs':
         data = performaCSData;
         break;
@@ -327,6 +330,11 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
         return <div className="text-center py-8 text-gray-500">Tabel akan segera tersedia</div>;
     }
 
+    // For heatmap, don't show the regular table
+    if (activeTab === 'heatmap') {
+      return null;
+    }
+
     return (
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
@@ -335,7 +343,6 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
              activeTab === 'kode-ads' ? 'Tabel Kode Ads' :
              activeTab === 'layanan-assist' ? 'Tabel Layanan Assist' :
              activeTab === 'kota-kabupaten' ? 'Tabel Kota/Kabupaten' :
-             activeTab === 'heatmap' ? 'Tabel Aktivitas Harian' :
              activeTab === 'performa-cs' ? 'Tabel Performa CS' : 'Tabel'}
           </h3>
         </div>
@@ -369,41 +376,6 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
             </tbody>
           </table>
         </div>
-
-        {/* Tambahan tabel untuk analisis jam pada heatmap */}
-        {activeTab === 'heatmap' && (
-          <div className="mt-6">
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Aktivitas per Jam (24 Jam)</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-left">Jam</th>
-                    <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Prospek</th>
-                    <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Leads</th>
-                    <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">CTR Leads</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {heatmapData.hourActivity.filter(item => item.prospek > 0).map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
-                          {item.ctr}%
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
       </div>
     );
   };
@@ -460,25 +432,32 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="flex flex-row items-center justify-between bg-gray-50 border-b border-gray-200 rounded-t-lg">
-            <CardTitle className="text-lg font-semibold text-gray-900">{getTitle()}</CardTitle>
-            <Button variant="outline" size="sm" onClick={downloadChartAsPNG}>
-              <Download className="h-4 w-4 mr-2" />
-              PNG
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div ref={chartRef}>
-              {renderChart()}
-            </div>
-          </CardContent>
-        </Card>
-        <div className="space-y-6">
-          {renderTable()}
+      {/* For heatmap, show full width */}
+      {activeTab === 'heatmap' ? (
+        <div>
+          {renderChart()}
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="bg-white border border-gray-200">
+            <CardHeader className="flex flex-row items-center justify-between bg-gray-50 border-b border-gray-200 rounded-t-lg">
+              <CardTitle className="text-lg font-semibold text-gray-900">{getTitle()}</CardTitle>
+              <Button variant="outline" size="sm" onClick={downloadChartAsPNG}>
+                <Download className="h-4 w-4 mr-2" />
+                PNG
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div ref={chartRef}>
+                {renderChart()}
+              </div>
+            </CardContent>
+          </Card>
+          <div className="space-y-6">
+            {renderTable()}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

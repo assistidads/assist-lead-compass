@@ -34,6 +34,15 @@ export interface DataMasterItem {
   updated_at: string;
 }
 
+export interface UserProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export function useSupabaseData() {
   const { user, profile } = useAuth();
   const [prospekData, setProspekData] = useState<SupabaseProspek[]>([]);
@@ -41,6 +50,7 @@ export function useSupabaseData() {
   const [kodeAdsData, setKodeAdsData] = useState<DataMasterItem[]>([]);
   const [sumberLeadsData, setSumberLeadsData] = useState<DataMasterItem[]>([]);
   const [alasanBukanLeadsData, setAlasanBukanLeadsData] = useState<DataMasterItem[]>([]);
+  const [usersData, setUsersData] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Fetch prospek data dengan filter berdasarkan role
@@ -90,6 +100,28 @@ export function useSupabaseData() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch users data (untuk admin)
+  const fetchUsersData = async () => {
+    if (!user || profile?.role !== 'admin') return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('full_name');
+
+      if (error) throw error;
+      setUsersData(data || []);
+    } catch (error) {
+      console.error('Error fetching users data:', error);
+      toast({
+        title: "Error",
+        description: "Gagal memuat data users",
+        variant: "destructive",
+      });
     }
   };
 
@@ -149,17 +181,19 @@ export function useSupabaseData() {
     if (!user) return;
 
     try {
-      const [layananRes, kodeAdsRes, sumberLeadsRes, alasanRes] = await Promise.all([
+      const [layananRes, kodeAdsRes, sumberLeadsRes, alasanRes, usersRes] = await Promise.all([
         supabase.from('layanan_assist').select('*').order('nama'),
         supabase.from('kode_ads').select('*').order('kode'),
         supabase.from('sumber_leads').select('*').order('nama'),
-        supabase.from('alasan_bukan_leads').select('*').order('alasan')
+        supabase.from('alasan_bukan_leads').select('*').order('alasan'),
+        supabase.from('profiles').select('*').order('full_name')
       ]);
 
       if (layananRes.data) setLayananData(layananRes.data);
       if (kodeAdsRes.data) setKodeAdsData(kodeAdsRes.data);
       if (sumberLeadsRes.data) setSumberLeadsData(sumberLeadsRes.data);
       if (alasanRes.data) setAlasanBukanLeadsData(alasanRes.data);
+      if (usersRes.data) setUsersData(usersRes.data);
 
     } catch (error) {
       console.error('Error fetching dropdown data:', error);
@@ -287,6 +321,7 @@ export function useSupabaseData() {
       fetchMasterDataForDropdowns();
       if (profile.role === 'admin') {
         fetchMasterData();
+        fetchUsersData();
       }
     }
   }, [user, profile]);
@@ -297,6 +332,7 @@ export function useSupabaseData() {
     kodeAdsData,
     sumberLeadsData,
     alasanBukanLeadsData,
+    usersData,
     loading,
     createProspek,
     updateProspek,
@@ -306,6 +342,7 @@ export function useSupabaseData() {
       fetchMasterDataForDropdowns();
       if (profile?.role === 'admin') {
         fetchMasterData();
+        fetchUsersData();
       }
     }
   };
