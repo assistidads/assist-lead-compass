@@ -9,9 +9,13 @@ import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 const COLORS = ['#2563eb', '#16a34a', '#eab308', '#dc2626', '#7c3aed'];
 
-export function Laporan() {
+interface LaporanProps {
+  reportType?: string;
+}
+
+export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
   const { prospekData, sumberLeadsData, kodeAdsData, layananData, loading } = useSupabaseData();
-  const [activeTab, setActiveTab] = useState('sumber-leads');
+  const [activeTab, setActiveTab] = useState(reportType);
   const chartRef = useRef<HTMLDivElement>(null);
 
   // Data untuk chart sumber leads
@@ -336,25 +340,25 @@ export function Laporan() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">{getTitle()}</h2>
-        <p className="text-gray-600">Analisis performa leads dan prospek</p>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Distribusi Sumber Leads</h2>
+        <p className="text-gray-600 mb-6">Analisis performa leads dan prospek</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="sumber-leads">Sumber Leads</TabsTrigger>
           <TabsTrigger value="kode-ads">Kode Ads</TabsTrigger>
-          <TabsTrigger value="layanan">Layanan</TabsTrigger>
+          <TabsTrigger value="layanan-assist">Layanan</TabsTrigger>
           <TabsTrigger value="performa-cs">Performa CS</TabsTrigger>
           <TabsTrigger value="kota-kabupaten">Kota/Kabupaten</TabsTrigger>
-          <TabsTrigger value="funnel">Funnel</TabsTrigger>
+          <TabsTrigger value="funnel-konversi">Funnel</TabsTrigger>
           <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sumber-leads">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="bg-white border border-gray-200">
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row items-center justify-between bg-gray-50 border-b border-gray-200 rounded-t-lg">
                 <CardTitle className="text-lg font-semibold text-gray-900">Distribusi Sumber Leads</CardTitle>
                 <Button variant="outline" size="sm" onClick={downloadChartAsPNG}>
                   <Download className="h-4 w-4 mr-2" />
@@ -363,12 +367,60 @@ export function Laporan() {
               </CardHeader>
               <CardContent>
                 <div ref={chartRef}>
-                  {renderChart()}
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={sumberLeadsChartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {sumberLeadsChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
             <div className="space-y-6">
-              {renderTable()}
+              <div className="bg-white rounded-lg border border-gray-200">
+                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
+                  <h3 className="text-lg font-semibold text-gray-900">Tabel Sumber Leads</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Name</th>
+                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Prospek</th>
+                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Leads</th>
+                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">CTR Leads</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {sumberLeadsChartData.map((item, index) => (
+                        <tr key={index} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                              {item.ctr}%
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </TabsContent>
@@ -376,7 +428,7 @@ export function Laporan() {
         <TabsContent value="kode-ads">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="bg-white border border-gray-200">
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row items-center justify-between bg-gray-50 border-b border-gray-200 rounded-t-lg">
                 <CardTitle className="text-lg font-semibold text-gray-900">Distribusi Kode Ads</CardTitle>
                 <Button variant="outline" size="sm" onClick={downloadChartAsPNG}>
                   <Download className="h-4 w-4 mr-2" />
@@ -385,17 +437,57 @@ export function Laporan() {
               </CardHeader>
               <CardContent>
                 <div ref={chartRef}>
-                  {renderChart()}
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={kodeAdsChartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="prospek" fill="#2563eb" name="Prospek" />
+                      <Bar dataKey="leads" fill="#16a34a" name="Leads" />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
             <div className="space-y-6">
-              {renderTable()}
+              <div className="bg-white rounded-lg border border-gray-200">
+                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
+                  <h3 className="text-lg font-semibold text-gray-900">Tabel Kode Ads</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Name</th>
+                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Prospek</th>
+                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Leads</th>
+                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">CTR Leads</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {kodeAdsChartData.map((item, index) => (
+                        <tr key={index} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                              {item.ctr}%
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </TabsContent>
 
-        <TabsContent value="layanan">
+        <TabsContent value="layanan-assist">
           <div className="text-center py-8 text-gray-500">
             Laporan layanan akan segera tersedia
           </div>
@@ -404,7 +496,7 @@ export function Laporan() {
         <TabsContent value="performa-cs">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="bg-white border border-gray-200">
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row items-center justify-between bg-gray-50 border-b border-gray-200 rounded-t-lg">
                 <CardTitle className="text-lg font-semibold text-gray-900">Performa CS</CardTitle>
                 <Button variant="outline" size="sm" onClick={downloadChartAsPNG}>
                   <Download className="h-4 w-4 mr-2" />
@@ -413,12 +505,55 @@ export function Laporan() {
               </CardHeader>
               <CardContent>
                 <div ref={chartRef}>
-                  {renderChart()}
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={performaCSData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="prospek" fill="#2563eb" name="Total Prospek" />
+                      <Bar dataKey="leads" fill="#16a34a" name="Leads" />
+                      <Bar dataKey="bukanLeads" fill="#dc2626" name="Bukan Leads" />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
             <div className="space-y-6">
-              {renderTable()}
+              <div className="bg-white rounded-lg border border-gray-200">
+                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
+                  <h3 className="text-lg font-semibold text-gray-900">Tabel Performa CS</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Nama CS</th>
+                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Total Prospek</th>
+                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Leads</th>
+                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Bukan Leads</th>
+                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">CTR Leads</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {performaCSData.map((cs, index) => (
+                        <tr key={index} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{cs.name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{cs.prospek}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 text-center font-medium">{cs.leads}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 text-center font-medium">{cs.bukanLeads}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(cs.ctr)}`}>
+                              {cs.ctr}%
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </TabsContent>
@@ -429,7 +564,7 @@ export function Laporan() {
           </div>
         </TabsContent>
 
-        <TabsContent value="funnel">
+        <TabsContent value="funnel-konversi">
           <div className="text-center py-8 text-gray-500">
             Laporan funnel akan segera tersedia
           </div>
