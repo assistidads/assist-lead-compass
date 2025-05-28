@@ -195,7 +195,7 @@ export function SupabaseDataMaster() {
     }
   };
 
-  const getTableName = (tab: string): string | null => {
+  const getTableName = (tab: string): "profiles" | "layanan_assist" | "kode_ads" | "sumber_leads" | "alasan_bukan_leads" | null => {
     switch (tab) {
       case 'user':
         return 'profiles';

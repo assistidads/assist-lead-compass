@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -236,25 +237,25 @@ export function Laporan() {
             title="Total Prospek"
             value={prospekData.length}
             change={0}
-            icon={Users}
+            icon={<Users className="h-4 w-4" />}
           />
           <MetricCard
             title="Total Leads"
             value={prospekData.filter(item => item.status_leads === 'Leads').length}
             change={0}
-            icon={Target}
+            icon={<Target className="h-4 w-4" />}
           />
           <MetricCard
             title="Conversion Rate"
             value={`${prospekData.length > 0 ? ((prospekData.filter(item => item.status_leads === 'Leads').length / prospekData.length) * 100).toFixed(1) : 0}%`}
             change={0}
-            icon={TrendingUp}
+            icon={<TrendingUp className="h-4 w-4" />}
           />
           <MetricCard
             title="Sumber Terbaik"
             value={sumberLeadsChartData.length > 0 ? sumberLeadsChartData.sort((a, b) => b.ctr - a.ctr)[0].name : 'N/A'}
             change={0}
-            icon={Award}
+            icon={<Award className="h-4 w-4" />}
           />
         </div>
       )}
