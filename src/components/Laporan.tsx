@@ -5,6 +5,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { Download } from 'lucide-react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { HeatmapChart } from './HeatmapChart';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const COLORS = ['#2563eb', '#16a34a', '#eab308', '#dc2626', '#7c3aed'];
 
@@ -17,9 +18,28 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
   const [activeTab, setActiveTab] = useState(reportType);
   const chartRef = useRef<HTMLDivElement>(null);
 
-  // Data untuk chart sumber leads
+  // Data untuk chart sumber leads dengan Organik
   const sumberLeadsChartData = useMemo(() => {
-    return sumberLeadsData.map(sumber => {
+    // Calculate Organik data (sources not containing "Ads" or "Refferal")
+    const organikSources = sumberLeadsData.filter(sumber => 
+      !sumber.nama.toLowerCase().includes('ads') && 
+      !sumber.nama.toLowerCase().includes('refferal')
+    );
+    
+    const organikProspekCount = organikSources.reduce((total, sumber) => {
+      return total + prospekData.filter(item => item.sumber_leads?.nama === sumber.nama).length;
+    }, 0);
+    
+    const organikLeadsCount = organikSources.reduce((total, sumber) => {
+      return total + prospekData.filter(item => 
+        item.sumber_leads?.nama === sumber.nama && item.status_leads === 'Leads'
+      ).length;
+    }, 0);
+    
+    const organikCtr = organikProspekCount > 0 ? (organikLeadsCount / organikProspekCount) * 100 : 0;
+
+    // Regular sumber leads data
+    const regularData = sumberLeadsData.map(sumber => {
       const prospekCount = prospekData.filter(item => item.sumber_leads?.nama === sumber.nama).length;
       const leadsCount = prospekData.filter(item => 
         item.sumber_leads?.nama === sumber.nama && item.status_leads === 'Leads'
@@ -34,9 +54,38 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
         ctr: parseFloat(ctr.toFixed(1))
       };
     }).filter(item => item.value > 0);
+
+    // Add Organik data at the beginning if it has data
+    const result = [];
+    if (organikProspekCount > 0) {
+      result.push({
+        name: 'Organik',
+        value: organikProspekCount,
+        prospek: organikProspekCount,
+        leads: organikLeadsCount,
+        ctr: parseFloat(organikCtr.toFixed(1)),
+        isOrganik: true,
+        organikBreakdown: organikSources.map(sumber => {
+          const prospekCount = prospekData.filter(item => item.sumber_leads?.nama === sumber.nama).length;
+          const leadsCount = prospekData.filter(item => 
+            item.sumber_leads?.nama === sumber.nama && item.status_leads === 'Leads'
+          ).length;
+          const ctr = prospekCount > 0 ? (leadsCount / prospekCount) * 100 : 0;
+          
+          return {
+            name: sumber.nama,
+            prospek: prospekCount,
+            leads: leadsCount,
+            ctr: parseFloat(ctr.toFixed(1))
+          };
+        }).filter(item => item.prospek > 0)
+      });
+    }
+    
+    return [...result, ...regularData];
   }, [prospekData, sumberLeadsData]);
 
-  // Data untuk chart kode ads
+  // Data untuk chart kode ads dengan breakdown ID Ads
   const kodeAdsChartData = useMemo(() => {
     return kodeAdsData.map(kode => {
       const prospekItems = prospekData.filter(item => item.kode_ads?.kode === kode.kode);
@@ -44,12 +93,36 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
       const leadsCount = prospekItems.filter(item => item.status_leads === 'Leads').length;
       const ctr = prospekCount > 0 ? (leadsCount / prospekCount) * 100 : 0;
 
+      // Group by ID Ads for breakdown
+      const idAdsBreakdown = prospekItems.reduce((acc, item) => {
+        const idAds = item.id_ads || 'Tidak Ada ID';
+        if (!acc[idAds]) {
+          acc[idAds] = { prospek: 0, leads: 0 };
+        }
+        acc[idAds].prospek++;
+        if (item.status_leads === 'Leads') {
+          acc[idAds].leads++;
+        }
+        return acc;
+      }, {} as Record<string, { prospek: number; leads: number }>);
+
+      const idAdsBreakdownArray = Object.entries(idAdsBreakdown).map(([idAds, data]) => ({
+        idAds,
+        prospek: data.prospek,
+        leads: data.leads,
+        ctr: data.prospek > 0 ? parseFloat(((data.leads / data.prospek) * 100).toFixed(1)) : 0
+      }));
+
+      // Only show breakdown if there are multiple ID Ads
+      const shouldShowBreakdown = Object.keys(idAdsBreakdown).length > 1;
+
       return {
         name: kode.kode,
         value: prospekCount,
         prospek: prospekCount,
         leads: leadsCount,
-        ctr: parseFloat(ctr.toFixed(1))
+        ctr: parseFloat(ctr.toFixed(1)),
+        idAdsBreakdown: shouldShowBreakdown ? idAdsBreakdownArray : []
       };
     }).filter(item => item.value > 0);
   }, [prospekData, kodeAdsData]);
@@ -170,29 +243,6 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
 
     return { dayActivity, heatmapMatrix };
   }, [prospekData]);
-
-  // Data untuk heatmap (contoh implementasi sederhana)
-  // const heatmapData = useMemo(() => {
-  //   const provinsiCounts = prospekData.reduce((acc, item) => {
-  //     const provinsi = item.provinsi_nama;
-  //     if (!acc[provinsi]) {
-  //       acc[provinsi] = { prospek: 0, leads: 0 };
-  //     }
-  //     acc[provinsi].prospek++;
-  //     if (item.status_leads === 'Leads') {
-  //       acc[provinsi].leads++;
-  //     }
-  //     return acc;
-  //   }, {} as Record<string, { prospek: number; leads: number }>);
-
-  //   return Object.entries(provinsiCounts).map(([provinsi, data]) => ({
-  //     name: provinsi,
-  //     value: data.prospek,
-  //     prospek: data.prospek,
-  //     leads: data.leads,
-  //     ctr: data.prospek > 0 ? parseFloat(((data.leads / data.prospek) * 100).toFixed(1)) : 0
-  //   })).filter(item => item.value > 0);
-  // }, [prospekData]);
 
   const downloadChartAsPNG = () => {
     if (chartRef.current) {
@@ -335,13 +385,144 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
       return null;
     }
 
+    // Special handling for Sumber Leads with Organik accordion
+    if (activeTab === 'sumber-leads') {
+      return (
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
+            <h3 className="text-lg font-semibold text-gray-900">Tabel Sumber Leads</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-100">
+                <tr>
+                  {columns.map((column, index) => (
+                    <th key={column} className={`px-6 py-4 text-sm font-semibold text-gray-900 ${index === 0 ? 'text-left' : 'text-center'}`}>
+                      {column}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {data.map((item, index) => (
+                  <tr key={index} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {item.isOrganik && item.organikBreakdown && item.organikBreakdown.length > 0 ? (
+                        <Accordion type="single" collapsible className="w-full">
+                          <AccordionItem value="organik" className="border-none">
+                            <AccordionTrigger className="hover:no-underline p-0 font-medium text-gray-900">
+                              {item.name}
+                            </AccordionTrigger>
+                            <AccordionContent className="pt-2">
+                              <div className="space-y-1">
+                                {item.organikBreakdown.map((breakdown, bIndex) => (
+                                  <div key={bIndex} className="text-xs text-gray-600 flex justify-between items-center py-1 border-b border-gray-100 last:border-b-0">
+                                    <span>{breakdown.name}</span>
+                                    <div className="flex gap-4">
+                                      <span>{breakdown.prospek}</span>
+                                      <span>{breakdown.leads}</span>
+                                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getCTRColor(breakdown.ctr)}`}>
+                                        {breakdown.ctr}%
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      ) : (
+                        item.name
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                        {item.ctr}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    // Special handling for Kode Ads with accordion breakdown
+    if (activeTab === 'kode-ads') {
+      return (
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
+            <h3 className="text-lg font-semibold text-gray-900">Tabel Kode Ads</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-100">
+                <tr>
+                  {columns.map((column, index) => (
+                    <th key={column} className={`px-6 py-4 text-sm font-semibold text-gray-900 ${index === 0 ? 'text-left' : 'text-center'}`}>
+                      {column}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {data.map((item, index) => (
+                  <tr key={index} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {item.idAdsBreakdown && item.idAdsBreakdown.length > 0 ? (
+                        <Accordion type="single" collapsible className="w-full">
+                          <AccordionItem value={`kode-${index}`} className="border-none">
+                            <AccordionTrigger className="hover:no-underline p-0 font-medium text-gray-900">
+                              {item.name}
+                            </AccordionTrigger>
+                            <AccordionContent className="pt-2">
+                              <div className="space-y-1">
+                                {item.idAdsBreakdown.map((breakdown, bIndex) => (
+                                  <div key={bIndex} className="text-xs text-gray-600 flex justify-between items-center py-1 border-b border-gray-100 last:border-b-0">
+                                    <span className="font-medium">ID: {breakdown.idAds}</span>
+                                    <div className="flex gap-4">
+                                      <span>{breakdown.prospek}</span>
+                                      <span>{breakdown.leads}</span>
+                                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getCTRColor(breakdown.ctr)}`}>
+                                        {breakdown.ctr}%
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      ) : (
+                        item.name
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                        {item.ctr}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    // Regular table for other tabs
     return (
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
           <h3 className="text-lg font-semibold text-gray-900">
-            {activeTab === 'sumber-leads' ? 'Tabel Sumber Leads' :
-             activeTab === 'kode-ads' ? 'Tabel Kode Ads' :
-             activeTab === 'layanan-assist' ? 'Tabel Layanan Assist' :
+            {activeTab === 'layanan-assist' ? 'Tabel Layanan Assist' :
              activeTab === 'kota-kabupaten' ? 'Tabel Kota/Kabupaten' :
              activeTab === 'performa-cs' ? 'Tabel Performa CS' : 'Tabel'}
           </h3>
