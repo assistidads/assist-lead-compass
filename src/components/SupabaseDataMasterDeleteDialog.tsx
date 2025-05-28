@@ -15,6 +15,12 @@ export function SupabaseDataMasterDeleteDialog({
   onConfirm, 
   itemName 
 }: SupabaseDataMasterDeleteDialogProps) {
+  
+  const handleConfirm = () => {
+    onConfirm();
+    // Don't close here, let the parent component handle closing after successful deletion
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
@@ -30,7 +36,7 @@ export function SupabaseDataMasterDeleteDialog({
           </Button>
           <Button 
             variant="destructive" 
-            onClick={onConfirm}
+            onClick={handleConfirm}
           >
             Hapus
           </Button>

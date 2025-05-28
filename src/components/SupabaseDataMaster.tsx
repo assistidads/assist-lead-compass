@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,7 @@ import { SupabaseDataMasterDeleteDialog } from './SupabaseDataMasterDeleteDialog
 type DataType = 'user' | 'layanan' | 'kode-ads' | 'sumber-leads' | 'tipe-faskes' | 'bukan-leads';
 
 export function SupabaseDataMaster() {
-  const { layananData, kodeAdsData, sumberLeadsData, alasanBukanLeadsData, usersData, refetchData } = useSupabaseData();
+  const { layananData, kodeAdsData, sumberLeadsData, tipeFaskesData, alasanBukanLeadsData, usersData, refetchData } = useSupabaseData();
   const [activeTab, setActiveTab] = useState<DataType>('user');
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -112,6 +111,10 @@ export function SupabaseDataMaster() {
         variant: "destructive",
       });
       
+      // Close dialog and reset selected item
+      setIsDeleteDialogOpen(false);
+      setSelectedItem(null);
+      
       refetchData();
     } catch (error) {
       console.error('Error deleting data:', error);
@@ -120,6 +123,9 @@ export function SupabaseDataMaster() {
         description: "Gagal menghapus data",
         variant: "destructive",
       });
+      // Still close dialog even on error
+      setIsDeleteDialogOpen(false);
+      setSelectedItem(null);
     }
   };
 
@@ -140,7 +146,7 @@ export function SupabaseDataMaster() {
       case 'layanan': return layananData;
       case 'kode-ads': return kodeAdsData;
       case 'sumber-leads': return sumberLeadsData;
-      case 'tipe-faskes': return [];
+      case 'tipe-faskes': return tipeFaskesData;
       case 'bukan-leads': return alasanBukanLeadsData;
       default: return [];
     }
@@ -371,7 +377,10 @@ export function SupabaseDataMaster() {
 
       <SupabaseDataMasterDeleteDialog
         isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setSelectedItem(null);
+        }}
         onConfirm={handleConfirmDelete}
         itemName={selectedItem ? getItemName(selectedItem) : ''}
       />
