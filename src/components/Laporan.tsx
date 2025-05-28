@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, FunnelChart, Funnel, LabelList } from 'recharts';
-import { Download, FileText, Activity } from 'lucide-react';
+import { Download, FileText, Activity, ChevronDown } from 'lucide-react';
 
 // Sample data for reports - Updated sumber leads data
 const sumberLeadsDataRaw = [
@@ -234,40 +233,52 @@ export function Laporan() {
               <TableRow key={index}>
                 {item.name === 'Organik' && organikSources.length > 1 ? (
                   <TableCell colSpan={4} className="p-0">
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="organik" className="border-0">
-                        <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                          <div className="flex justify-between items-center w-full pr-4">
-                            <span className="font-medium">{item.name}</span>
-                            <div className="flex gap-8 text-sm">
-                              <span>{item.prospek}</span>
-                              <span>{item.leads}</span>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                item.ctr >= 30 ? 'bg-green-100 text-green-800' : 
-                                item.ctr >= 25 ? 'bg-yellow-100 text-yellow-800' : 
-                                'bg-red-100 text-red-800'
-                              }`}>
-                                {item.ctr}%
-                              </span>
-                            </div>
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="px-4 pb-3">
-                          <div className="border-l-2 border-gray-200 ml-4 pl-4 space-y-2">
-                            {organikSources.map((source, idx) => (
-                              <div key={idx} className="flex justify-between items-center text-sm text-gray-600">
-                                <span>{source.name}</span>
-                                <div className="flex gap-8">
-                                  <span>{source.prospek}</span>
-                                  <span>{source.leads}</span>
-                                  <span>{source.ctr}%</span>
-                                </div>
+                    <div className="border border-blue-200 rounded-lg bg-blue-50 m-2">
+                      <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="organik" className="border-0">
+                          <AccordionTrigger className="px-4 py-3 hover:no-underline text-left">
+                            <div className="flex justify-between items-center w-full">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-gray-900">{item.name}</span>
                               </div>
-                            ))}
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
+                              <div className="flex items-center gap-8 text-sm text-gray-700">
+                                <span className="min-w-[60px] text-right">{item.prospek}</span>
+                                <span className="min-w-[60px] text-right">{item.leads}</span>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium min-w-[60px] text-center ${
+                                  item.ctr >= 30 ? 'bg-green-100 text-green-800' : 
+                                  item.ctr >= 25 ? 'bg-yellow-100 text-yellow-800' : 
+                                  'bg-red-100 text-red-800'
+                                }`}>
+                                  {item.ctr}%
+                                </span>
+                                <ChevronDown className="h-4 w-4 text-gray-500" />
+                              </div>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-4 pb-3">
+                            <div className="space-y-2">
+                              {organikSources.map((source, idx) => (
+                                <div key={idx} className="flex justify-between items-center text-sm text-gray-600 py-2 px-4 bg-white rounded border-l-4 border-blue-300">
+                                  <span className="font-medium">{source.name}</span>
+                                  <div className="flex items-center gap-8">
+                                    <span className="min-w-[60px] text-right">{source.prospek}</span>
+                                    <span className="min-w-[60px] text-right">{source.leads}</span>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium min-w-[60px] text-center ${
+                                      source.ctr >= 30 ? 'bg-green-100 text-green-800' : 
+                                      source.ctr >= 25 ? 'bg-yellow-100 text-yellow-800' : 
+                                      'bg-red-100 text-red-800'
+                                    }`}>
+                                      {source.ctr}%
+                                    </span>
+                                    <div className="w-4"></div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </div>
                   </TableCell>
                 ) : (
                   <>

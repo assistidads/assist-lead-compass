@@ -1,5 +1,8 @@
+
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Eye, Edit, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -37,6 +40,7 @@ export function ProspekDataTable({
   setCurrentPage,
   itemsPerPage
 }: ProspekDataTableProps) {
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   
   const handleView = (id: number) => {
     toast({
@@ -63,9 +67,40 @@ export function ProspekDataTable({
     console.log('Delete prospek:', id);
   };
 
+  // Calculate pagination based on rowsPerPage
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const currentData = filteredData.slice(startIndex, endIndex);
+
   return (
     <Card className="bg-white border border-gray-200">
       <CardContent className="p-0">
+        {/* Rows per page selector */}
+        <div className="flex justify-between items-center p-4 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-700">Tampilkan</span>
+            <Select value={rowsPerPage.toString()} onValueChange={(value) => {
+              setRowsPerPage(parseInt(value));
+              setCurrentPage(1); // Reset to first page when changing rows per page
+            }}>
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-sm text-gray-700">baris</span>
+          </div>
+          <div className="text-sm text-gray-700">
+            Total: {filteredData.length} data
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -89,7 +124,7 @@ export function ProspekDataTable({
               </tr>
             </thead>
             <tbody>
-              {filteredData.map((item) => (
+              {currentData.map((item) => (
                 <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 px-4 text-sm text-gray-900">{item.createdDate}</td>
                   <td className="py-3 px-4 text-sm text-gray-900">{item.tanggalProspekMasuk}</td>
@@ -158,7 +193,7 @@ export function ProspekDataTable({
         {/* Pagination */}
         <div className="flex items-center justify-between p-4 border-t border-gray-200">
           <div className="text-sm text-gray-700">
-            Menampilkan {filteredData.length} dari {totalData} data
+            Menampilkan {startIndex + 1} - {Math.min(endIndex, filteredData.length)} dari {filteredData.length} data
           </div>
           <div className="flex gap-2">
             <Button 
@@ -169,11 +204,16 @@ export function ProspekDataTable({
             >
               Sebelumnya
             </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-700">
+                Halaman {currentPage} dari {totalPages}
+              </span>
+            </div>
             <Button 
               variant="outline" 
               size="sm" 
-              disabled={currentPage * itemsPerPage >= totalData}
-              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
             >
               Selanjutnya
             </Button>
