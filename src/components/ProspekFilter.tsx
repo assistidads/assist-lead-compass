@@ -61,7 +61,7 @@ export function ProspekFilter({
     <div className="space-y-4">
       {/* Search and Filter Row */}
       <div className="flex gap-3 items-center">
-        <div className="relative flex-1">
+        <div className="relative w-1/4">
           <Input
             placeholder="Cari berdasarkan nama prospek atau nama faskes..."
             value={searchTerm}
@@ -69,143 +69,20 @@ export function ProspekFilter({
           />
         </div>
         
-        <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-          <CollapsibleTrigger asChild>
-            <Button variant="outline" className="relative">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-              <ChevronDown className={`h-4 w-4 ml-2 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
-              {getActiveFiltersCount() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {getActiveFiltersCount()}
-                </span>
-              )}
-            </Button>
-          </CollapsibleTrigger>
-          
-          <CollapsibleContent className="absolute top-full left-0 right-0 z-50 mt-2">
-            <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Kode Ads Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Kode Ads</label>
-                  <Select value={kodeAdsFilter} onValueChange={setKodeAdsFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Kode Ads" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Kode Ads</SelectItem>
-                      {uniqueKodeAds.map((kode) => (
-                        <SelectItem key={kode} value={kode}>{kode}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Sumber Leads Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Sumber Leads</label>
-                  <Select value={sumberLeadsFilter} onValueChange={setSumberLeadsFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Sumber Leads" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Sumber Leads</SelectItem>
-                      {uniqueSumberLeads.map((sumber) => (
-                        <SelectItem key={sumber} value={sumber}>{sumber}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Layanan Assist Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Layanan Assist</label>
-                  <Select value={layananAssistFilter} onValueChange={setLayananAssistFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Layanan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Layanan</SelectItem>
-                      {uniqueLayananAssist.map((layanan) => (
-                        <SelectItem key={layanan} value={layanan}>{layanan}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Status Leads Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Status Leads</label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Status</SelectItem>
-                      <SelectItem value="Prospek">Prospek</SelectItem>
-                      <SelectItem value="Dihubungi">Dihubungi</SelectItem>
-                      <SelectItem value="Leads">Leads</SelectItem>
-                      <SelectItem value="Bukan Leads">Bukan Leads</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Periode Waktu Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Periode Waktu</label>
-                  <Select value={periodeFilter} onValueChange={setPeriodeFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Periode" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Waktu</SelectItem>
-                      <SelectItem value="hari_ini">Hari ini</SelectItem>
-                      <SelectItem value="kemarin">Kemarin</SelectItem>
-                      <SelectItem value="minggu_ini">Minggu ini</SelectItem>
-                      <SelectItem value="minggu_lalu">Minggu lalu</SelectItem>
-                      <SelectItem value="bulan_ini">Bulan ini</SelectItem>
-                      <SelectItem value="bulan_kemarin">Bulan kemarin</SelectItem>
-                      <SelectItem value="custom">Custom</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Custom Date Range */}
-              {periodeFilter === 'custom' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Tanggal Mulai</label>
-                    <Input
-                      type="date"
-                      value={customStartDate}
-                      onChange={(e) => setCustomStartDate(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Tanggal Akhir</label>
-                    <Input
-                      type="date"
-                      value={customEndDate}
-                      onChange={(e) => setCustomEndDate(e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-4">
-                <Button onClick={resetFilters} variant="outline" className="flex-1">
-                  Reset Filter
-                </Button>
-                <Button onClick={() => setIsFilterOpen(false)} className="flex-1 bg-blue-600 hover:bg-blue-700">
-                  Terapkan Filter
-                </Button>
-              </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+        <Button 
+          variant="outline" 
+          className="relative"
+          onClick={() => setIsFilterOpen(!isFilterOpen)}
+        >
+          <Filter className="h-4 w-4 mr-2" />
+          Filter
+          <ChevronDown className={`h-4 w-4 ml-2 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
+          {getActiveFiltersCount() > 0 && (
+            <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {getActiveFiltersCount()}
+            </span>
+          )}
+        </Button>
 
         {hasActiveFilters && (
           <Button 
@@ -219,6 +96,132 @@ export function ProspekFilter({
           </Button>
         )}
       </div>
+
+      {/* Filter Content */}
+      <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+        <CollapsibleContent>
+          <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Kode Ads Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Kode Ads</label>
+                <Select value={kodeAdsFilter} onValueChange={setKodeAdsFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Kode Ads" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Kode Ads</SelectItem>
+                    {uniqueKodeAds.map((kode) => (
+                      <SelectItem key={kode} value={kode}>{kode}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Sumber Leads Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Sumber Leads</label>
+                <Select value={sumberLeadsFilter} onValueChange={setSumberLeadsFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Sumber Leads" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Sumber Leads</SelectItem>
+                    {uniqueSumberLeads.map((sumber) => (
+                      <SelectItem key={sumber} value={sumber}>{sumber}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Layanan Assist Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Layanan Assist</label>
+                <Select value={layananAssistFilter} onValueChange={setLayananAssistFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Layanan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Layanan</SelectItem>
+                    {uniqueLayananAssist.map((layanan) => (
+                      <SelectItem key={layanan} value={layanan}>{layanan}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Status Leads Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Status Leads</label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Status</SelectItem>
+                    <SelectItem value="Prospek">Prospek</SelectItem>
+                    <SelectItem value="Dihubungi">Dihubungi</SelectItem>
+                    <SelectItem value="Leads">Leads</SelectItem>
+                    <SelectItem value="Bukan Leads">Bukan Leads</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Periode Waktu Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Periode Waktu</label>
+                <Select value={periodeFilter} onValueChange={setPeriodeFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Periode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Waktu</SelectItem>
+                    <SelectItem value="hari_ini">Hari ini</SelectItem>
+                    <SelectItem value="kemarin">Kemarin</SelectItem>
+                    <SelectItem value="minggu_ini">Minggu ini</SelectItem>
+                    <SelectItem value="minggu_lalu">Minggu lalu</SelectItem>
+                    <SelectItem value="bulan_ini">Bulan ini</SelectItem>
+                    <SelectItem value="bulan_kemarin">Bulan kemarin</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Custom Date Range */}
+            {periodeFilter === 'custom' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Tanggal Mulai</label>
+                  <Input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Tanggal Akhir</label>
+                  <Input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4">
+              <Button onClick={resetFilters} variant="outline" className="flex-1">
+                Reset Filter
+              </Button>
+              <Button onClick={() => setIsFilterOpen(false)} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                Terapkan Filter
+              </Button>
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
