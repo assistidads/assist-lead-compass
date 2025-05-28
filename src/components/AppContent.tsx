@@ -28,25 +28,25 @@ export default function AppContent({ currentPage }: AppContentProps) {
               <TabsTrigger value="bukan-leads">Bukan Leads</TabsTrigger>
             </TabsList>
             <TabsContent value="user">
-              <SupabaseDataMaster type="user" />
+              <SupabaseDataMaster />
             </TabsContent>
             <TabsContent value="layanan">
-              <SupabaseDataMaster type="layanan" />
+              <SupabaseDataMaster />
             </TabsContent>
             <TabsContent value="kode-ads">
-              <SupabaseDataMaster type="kode-ads" />
+              <SupabaseDataMaster />
             </TabsContent>
             <TabsContent value="sumber-leads">
-              <SupabaseDataMaster type="sumber-leads" />
+              <SupabaseDataMaster />
             </TabsContent>
             <TabsContent value="tipe-faskes">
-              <SupabaseDataMaster type="tipe-faskes" />
+              <SupabaseDataMaster />
             </TabsContent>
             <TabsContent value="status-leads">
-              <SupabaseDataMaster type="status-leads" />
+              <SupabaseDataMaster />
             </TabsContent>
             <TabsContent value="bukan-leads">
-              <SupabaseDataMaster type="bukan-leads" />
+              <SupabaseDataMaster />
             </TabsContent>
           </Tabs>
         );

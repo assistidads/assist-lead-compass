@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,6 +10,30 @@ import { Download, FileText, ChevronDown } from 'lucide-react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 const COLORS = ['#2563eb', '#16a34a', '#eab308', '#dc2626', '#7c3aed'];
+
+// Type definitions for better TypeScript support
+interface SumberLeadsDataItem {
+  name: string;
+  value: number;
+  prospek: number;
+  leads: number;
+  ctr: number;
+  isOrganik?: boolean;
+}
+
+interface KodeAdsDataItem {
+  name: string;
+  value: number;
+  prospek: number;
+  leads: number;
+  ctr: number;
+  breakdown: Array<{
+    idAds: string;
+    prospek: number;
+    leads: number;
+    ctr: number;
+  }>;
+}
 
 export function Laporan() {
   const { prospekData, sumberLeadsData, kodeAdsData, layananData, loading } = useSupabaseData();
@@ -84,7 +107,7 @@ export function Laporan() {
 
   // Data untuk chart sumber leads dengan organik
   const sumberLeadsChartData = useMemo(() => {
-    const regularSources = sumberLeadsData
+    const regularSources: SumberLeadsDataItem[] = sumberLeadsData
       .filter(sumber => 
         sumber.nama.toLowerCase().includes('ads') || 
         sumber.nama.toLowerCase().includes('refferal')
