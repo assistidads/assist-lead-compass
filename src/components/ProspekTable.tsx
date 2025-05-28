@@ -1,10 +1,10 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Plus, Search, Edit, Trash2, Eye, Filter, X } from 'lucide-react';
 
 const prospekData = [
   {
@@ -65,27 +65,104 @@ const prospekData = [
 
 export function ProspekTable() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [kodeAdsFilter, setKodeAdsFilter] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
+  // Filter states
+  const [kodeAdsFilter, setKodeAdsFilter] = useState('all');
+  const [sumberLeadsFilter, setSumberLeadsFilter] = useState('all');
+  const [layananAssistFilter, setLayananAssistFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [periodeFilter, setPeriodeFilter] = useState('all');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Get unique values for filter options
+  const uniqueKodeAds = [...new Set(prospekData.map(item => item.kodeAds).filter(Boolean))];
+  const uniqueSumberLeads = [...new Set(prospekData.map(item => item.sumberLeads))];
+  const uniqueLayananAssist = [...new Set(prospekData.map(item => item.layananAssist))];
+
+  // Helper function to check if date matches period filter
+  const matchesPeriode = (dateStr: string) => {
+    if (periodeFilter === 'all') return true;
+    
+    const itemDate = new Date(dateStr.split(' ')[0].split('/').reverse().join('-'));
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    switch (periodeFilter) {
+      case 'hari_ini':
+        return itemDate.toDateString() === today.toDateString();
+      case 'kemarin':
+        return itemDate.toDateString() === yesterday.toDateString();
+      case 'minggu_ini':
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay());
+        return itemDate >= startOfWeek && itemDate <= today;
+      case 'minggu_lalu':
+        const startOfLastWeek = new Date(today);
+        startOfLastWeek.setDate(today.getDate() - today.getDay() - 7);
+        const endOfLastWeek = new Date(startOfLastWeek);
+        endOfLastWeek.setDate(startOfLastWeek.getDate() + 6);
+        return itemDate >= startOfLastWeek && itemDate <= endOfLastWeek;
+      case 'bulan_ini':
+        return itemDate.getMonth() === today.getMonth() && itemDate.getFullYear() === today.getFullYear();
+      case 'bulan_kemarin':
+        const lastMonth = new Date(today);
+        lastMonth.setMonth(today.getMonth() - 1);
+        return itemDate.getMonth() === lastMonth.getMonth() && itemDate.getFullYear() === lastMonth.getFullYear();
+      case 'custom':
+        if (!customStartDate || !customEndDate) return true;
+        const startDate = new Date(customStartDate);
+        const endDate = new Date(customEndDate);
+        return itemDate >= startDate && itemDate <= endDate;
+      default:
+        return true;
+    }
+  };
 
   const filteredData = prospekData.filter(item => {
     const matchesSearch = item.namaProspek.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.namaFaskes.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesKodeAds = kodeAdsFilter === '' || 
-                          (item.kodeAds && item.kodeAds.toLowerCase().includes(kodeAdsFilter.toLowerCase()));
+    const matchesKodeAds = kodeAdsFilter === 'all' || item.kodeAds === kodeAdsFilter;
+    const matchesSumberLeads = sumberLeadsFilter === 'all' || item.sumberLeads === sumberLeadsFilter;
+    const matchesLayananAssist = layananAssistFilter === 'all' || item.layananAssist === layananAssistFilter;
     const matchesStatus = statusFilter === 'all' || item.statusLeads === statusFilter;
-    return matchesSearch && matchesKodeAds && matchesStatus;
+    const matchesPeriodeFilter = matchesPeriode(item.createdDate);
+    
+    return matchesSearch && matchesKodeAds && matchesSumberLeads && matchesLayananAssist && matchesStatus && matchesPeriodeFilter;
   });
 
   const resetFilters = () => {
     setSearchTerm('');
-    setKodeAdsFilter('');
+    setKodeAdsFilter('all');
+    setSumberLeadsFilter('all');
+    setLayananAssistFilter('all');
     setStatusFilter('all');
+    setPeriodeFilter('all');
+    setCustomStartDate('');
+    setCustomEndDate('');
   };
 
-  const hasActiveFilters = searchTerm !== '' || kodeAdsFilter !== '' || statusFilter !== 'all';
+  const applyFilters = () => {
+    setIsFilterOpen(false);
+  };
+
+  const hasActiveFilters = searchTerm !== '' || kodeAdsFilter !== 'all' || sumberLeadsFilter !== 'all' || 
+                          layananAssistFilter !== 'all' || statusFilter !== 'all' || periodeFilter !== 'all';
+
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (kodeAdsFilter !== 'all') count++;
+    if (sumberLeadsFilter !== 'all') count++;
+    if (layananAssistFilter !== 'all') count++;
+    if (statusFilter !== 'all') count++;
+    if (periodeFilter !== 'all') count++;
+    return count;
+  };
 
   return (
     <div className="space-y-6">
@@ -98,59 +175,170 @@ export function ProspekTable() {
         </Button>
       </div>
 
-      {/* Filters */}
+      {/* Search and Filter Bar */}
       <Card className="bg-white border border-gray-200">
-        <CardHeader>
-          <CardTitle className="text-lg font-medium">Filter & Pencarian</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="relative">
+        <CardContent className="p-4">
+          <div className="flex gap-3 items-center">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Cari nama prospek atau faskes..."
+                placeholder="Cari berdasarkan nama prospek..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-
-            <div>
-              <Input
-                placeholder="Cari berdasarkan kode ads..."
-                value={kodeAdsFilter}
-                onChange={(e) => setKodeAdsFilter(e.target.value)}
-              />
-            </div>
             
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Status</SelectItem>
-                <SelectItem value="Prospek">Prospek</SelectItem>
-                <SelectItem value="Dihubungi">Dihubungi</SelectItem>
-                <SelectItem value="Leads">Leads</SelectItem>
-                <SelectItem value="Bukan Leads">Bukan Leads</SelectItem>
-              </SelectContent>
-            </Select>
+            <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="relative">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filter
+                  {getActiveFiltersCount() > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {getActiveFiltersCount()}
+                    </span>
+                  )}
+                </Button>
+              </SheetTrigger>
+              
+              <SheetContent className="w-[400px] sm:w-[540px]">
+                <SheetHeader>
+                  <SheetTitle>Filter Data Prospek</SheetTitle>
+                </SheetHeader>
+                
+                <div className="space-y-6 mt-6">
+                  {/* Kode Ads Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Kode Ads</label>
+                    <Select value={kodeAdsFilter} onValueChange={setKodeAdsFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Kode Ads" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua Kode Ads</SelectItem>
+                        {uniqueKodeAds.map((kode) => (
+                          <SelectItem key={kode} value={kode}>{kode}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10 per halaman</SelectItem>
-                <SelectItem value="25">25 per halaman</SelectItem>
-                <SelectItem value="50">50 per halaman</SelectItem>
-                <SelectItem value="100">100 per halaman</SelectItem>
-              </SelectContent>
-            </Select>
+                  {/* Sumber Leads Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Sumber Leads</label>
+                    <Select value={sumberLeadsFilter} onValueChange={setSumberLeadsFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Sumber Leads" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua Sumber Leads</SelectItem>
+                        {uniqueSumberLeads.map((sumber) => (
+                          <SelectItem key={sumber} value={sumber}>{sumber}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            <Button variant="outline" onClick={resetFilters}>
-              Reset Filter
-            </Button>
+                  {/* Layanan Assist Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Layanan Assist</label>
+                    <Select value={layananAssistFilter} onValueChange={setLayananAssistFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Layanan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua Layanan</SelectItem>
+                        {uniqueLayananAssist.map((layanan) => (
+                          <SelectItem key={layanan} value={layanan}>{layanan}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Status Leads Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Status Leads</label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua Status</SelectItem>
+                        <SelectItem value="Prospek">Prospek</SelectItem>
+                        <SelectItem value="Dihubungi">Dihubungi</SelectItem>
+                        <SelectItem value="Leads">Leads</SelectItem>
+                        <SelectItem value="Bukan Leads">Bukan Leads</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Periode Waktu Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Periode Waktu</label>
+                    <Select value={periodeFilter} onValueChange={setPeriodeFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Periode" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua Waktu</SelectItem>
+                        <SelectItem value="hari_ini">Hari ini</SelectItem>
+                        <SelectItem value="kemarin">Kemarin</SelectItem>
+                        <SelectItem value="minggu_ini">Minggu ini</SelectItem>
+                        <SelectItem value="minggu_lalu">Minggu lalu</SelectItem>
+                        <SelectItem value="bulan_ini">Bulan ini</SelectItem>
+                        <SelectItem value="bulan_kemarin">Bulan kemarin</SelectItem>
+                        <SelectItem value="custom">Custom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Custom Date Range */}
+                  {periodeFilter === 'custom' && (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Tanggal Mulai</label>
+                        <Input
+                          type="date"
+                          value={customStartDate}
+                          onChange={(e) => setCustomStartDate(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Tanggal Akhir</label>
+                        <Input
+                          type="date"
+                          value={customEndDate}
+                          onChange={(e) => setCustomEndDate(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 pt-4">
+                    <Button onClick={resetFilters} variant="outline" className="flex-1">
+                      Reset Filter
+                    </Button>
+                    <Button onClick={applyFilters} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                      Terapkan Filter
+                    </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            {hasActiveFilters && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={resetFilters}
+                className="text-gray-600 hover:text-gray-700"
+              >
+                <X className="h-4 w-4 mr-1" />
+                Tutup Filter
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -167,14 +355,37 @@ export function ProspekTable() {
                     • Pencarian: "<span className="font-medium">{searchTerm}</span>"
                   </span>
                 )}
-                {kodeAdsFilter && (
+                {kodeAdsFilter !== 'all' && (
                   <span className="ml-2">
                     • Kode Ads: "<span className="font-medium">{kodeAdsFilter}</span>"
+                  </span>
+                )}
+                {sumberLeadsFilter !== 'all' && (
+                  <span className="ml-2">
+                    • Sumber: "<span className="font-medium">{sumberLeadsFilter}</span>"
+                  </span>
+                )}
+                {layananAssistFilter !== 'all' && (
+                  <span className="ml-2">
+                    • Layanan: "<span className="font-medium">{layananAssistFilter}</span>"
                   </span>
                 )}
                 {statusFilter !== 'all' && (
                   <span className="ml-2">
                     • Status: "<span className="font-medium">{statusFilter}</span>"
+                  </span>
+                )}
+                {periodeFilter !== 'all' && (
+                  <span className="ml-2">
+                    • Periode: "<span className="font-medium">
+                      {periodeFilter === 'hari_ini' ? 'Hari ini' :
+                       periodeFilter === 'kemarin' ? 'Kemarin' :
+                       periodeFilter === 'minggu_ini' ? 'Minggu ini' :
+                       periodeFilter === 'minggu_lalu' ? 'Minggu lalu' :
+                       periodeFilter === 'bulan_ini' ? 'Bulan ini' :
+                       periodeFilter === 'bulan_kemarin' ? 'Bulan kemarin' :
+                       periodeFilter === 'custom' ? `${customStartDate} - ${customEndDate}` : periodeFilter}
+                    </span>"
                   </span>
                 )}
               </div>
