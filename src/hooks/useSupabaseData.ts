@@ -35,7 +35,7 @@ export interface DataMasterItem {
 }
 
 export function useSupabaseData() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [prospekData, setProspekData] = useState<SupabaseProspek[]>([]);
   const [layananData, setLayananData] = useState<DataMasterItem[]>([]);
   const [kodeAdsData, setKodeAdsData] = useState<DataMasterItem[]>([]);
@@ -43,13 +43,13 @@ export function useSupabaseData() {
   const [alasanBukanLeadsData, setAlasanBukanLeadsData] = useState<DataMasterItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch all prospek data
+  // Fetch prospek data dengan filter berdasarkan role
   const fetchProspekData = async () => {
     if (!user) return;
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('prospek')
         .select(`
           *,
@@ -61,6 +61,13 @@ export function useSupabaseData() {
           created_by_profile:created_by(full_name)
         `)
         .order('created_at', { ascending: false });
+
+      // Filter berdasarkan role - CS Support hanya bisa lihat data yang mereka buat
+      if (profile?.role === 'cs_support') {
+        query = query.eq('created_by', user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       
@@ -86,9 +93,9 @@ export function useSupabaseData() {
     }
   };
 
-  // Fetch master data
+  // Fetch master data (hanya admin yang bisa akses)
   const fetchMasterData = async () => {
-    if (!user) return;
+    if (!user || profile?.role !== 'admin') return;
 
     try {
       // Fetch layanan assist
@@ -137,17 +144,47 @@ export function useSupabaseData() {
     }
   };
 
+  // Fetch data master untuk dropdown (semua user perlu akses untuk form)
+  const fetchMasterDataForDropdowns = async () => {
+    if (!user) return;
+
+    try {
+      const [layananRes, kodeAdsRes, sumberLeadsRes, alasanRes] = await Promise.all([
+        supabase.from('layanan_assist').select('*').order('nama'),
+        supabase.from('kode_ads').select('*').order('kode'),
+        supabase.from('sumber_leads').select('*').order('nama'),
+        supabase.from('alasan_bukan_leads').select('*').order('alasan')
+      ]);
+
+      if (layananRes.data) setLayananData(layananRes.data);
+      if (kodeAdsRes.data) setKodeAdsData(kodeAdsRes.data);
+      if (sumberLeadsRes.data) setSumberLeadsData(sumberLeadsRes.data);
+      if (alasanRes.data) setAlasanBukanLeadsData(alasanRes.data);
+
+    } catch (error) {
+      console.error('Error fetching dropdown data:', error);
+    }
+  };
+
   // Create new prospek
   const createProspek = async (prospekData: any) => {
     if (!user) return null;
 
     try {
+      // Pastikan semua foreign key yang kosong diset ke null
+      const cleanedData = {
+        ...prospekData,
+        created_by: user.id,
+        sumber_leads_id: prospekData.sumber_leads_id || null,
+        kode_ads_id: prospekData.kode_ads_id || null,
+        layanan_assist_id: prospekData.layanan_assist_id || null,
+        alasan_bukan_leads_id: prospekData.alasan_bukan_leads_id || null,
+        pic_leads_id: prospekData.pic_leads_id || null,
+      };
+
       const { data, error } = await supabase
         .from('prospek')
-        .insert([{
-          ...prospekData,
-          created_by: user.id
-        }])
+        .insert([cleanedData])
         .select()
         .single();
 
@@ -176,9 +213,19 @@ export function useSupabaseData() {
     if (!user) return null;
 
     try {
+      // Pastikan semua foreign key yang kosong diset ke null
+      const cleanedData = {
+        ...prospekData,
+        sumber_leads_id: prospekData.sumber_leads_id || null,
+        kode_ads_id: prospekData.kode_ads_id || null,
+        layanan_assist_id: prospekData.layanan_assist_id || null,
+        alasan_bukan_leads_id: prospekData.alasan_bukan_leads_id || null,
+        pic_leads_id: prospekData.pic_leads_id || null,
+      };
+
       const { data, error } = await supabase
         .from('prospek')
-        .update(prospekData)
+        .update(cleanedData)
         .eq('id', id)
         .select()
         .single();
@@ -235,11 +282,14 @@ export function useSupabaseData() {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && profile) {
       fetchProspekData();
-      fetchMasterData();
+      fetchMasterDataForDropdowns();
+      if (profile.role === 'admin') {
+        fetchMasterData();
+      }
     }
-  }, [user]);
+  }, [user, profile]);
 
   return {
     prospekData,
@@ -253,7 +303,10 @@ export function useSupabaseData() {
     deleteProspek,
     refetchData: () => {
       fetchProspekData();
-      fetchMasterData();
+      fetchMasterDataForDropdowns();
+      if (profile?.role === 'admin') {
+        fetchMasterData();
+      }
     }
   };
 }

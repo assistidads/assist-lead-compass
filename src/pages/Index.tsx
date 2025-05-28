@@ -7,8 +7,8 @@ const Index = () => {
   return (
     <ProtectedRoute>
       <Layout>
-        {() => (
-          <AppContent />
+        {({ currentPage }) => (
+          <AppContent currentPage={currentPage} />
         )}
       </Layout>
     </ProtectedRoute>

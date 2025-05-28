@@ -5,6 +5,7 @@ import { BarChart3, Users, TrendingUp, Database, LogOut, User } from 'lucide-rea
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,25 +19,41 @@ interface LayoutProps {
   children: (props: { currentPage: string }) => React.ReactNode;
 }
 
-const menuItems = [
-  { title: 'Dashboard', icon: BarChart3, path: 'dashboard' },
-  { title: 'Data Prospek', icon: Users, path: 'prospek' },
-  { title: 'Laporan', icon: TrendingUp, path: 'laporan' },
-  { title: 'Data Master', icon: Database, path: 'master', adminOnly: true },
-];
-
 export function Layout({ children }: LayoutProps) {
-  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTab = searchParams.get('tab') || 'dashboard';
   const { profile, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
-    window.location.href = '/auth';
+    navigate('/auth');
   };
 
-  const filteredMenuItems = menuItems.filter(item => 
-    !item.adminOnly || profile?.role === 'admin'
-  );
+  const handleMenuClick = (tab: string) => {
+    setSearchParams({ tab });
+  };
+
+  // Menu items berdasarkan role
+  const getMenuItems = () => {
+    if (profile?.role === 'admin') {
+      return [
+        { title: 'Dashboard', icon: BarChart3, tab: 'dashboard' },
+        { title: 'Data Master', icon: Database, tab: 'data-master' },
+        { title: 'Data Prospek', icon: Users, tab: 'data-prospek' },
+        { title: 'Laporan', icon: TrendingUp, tab: 'laporan' },
+      ];
+    } else {
+      return [
+        { title: 'Dashboard', icon: BarChart3, tab: 'dashboard' },
+        { title: 'Data Prospek', icon: Users, tab: 'data-prospek' },
+        { title: 'Laporan', icon: TrendingUp, tab: 'laporan' },
+      ];
+    }
+  };
+
+  const menuItems = getMenuItems();
+  const activeMenuItem = menuItems.find(item => item.tab === currentTab);
 
   return (
     <SidebarProvider>
@@ -49,13 +66,13 @@ export function Layout({ children }: LayoutProps) {
             </div>
             
             <SidebarMenu className="p-4 space-y-2">
-              {filteredMenuItems.map((item) => (
-                <SidebarMenuItem key={item.path}>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.tab}>
                   <SidebarMenuButton 
-                    onClick={() => setCurrentPage(item.path)}
+                    onClick={() => handleMenuClick(item.tab)}
                     className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
-                      currentPage === item.path 
+                      "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors cursor-pointer",
+                      currentTab === item.tab 
                         ? "bg-blue-50 text-blue-700 font-medium" 
                         : "text-gray-700 hover:bg-gray-100"
                     )}
@@ -74,7 +91,7 @@ export function Layout({ children }: LayoutProps) {
             <SidebarTrigger className="mr-4" />
             <div className="flex-1">
               <h1 className="text-2xl font-semibold text-gray-900">
-                {filteredMenuItems.find(item => item.path === currentPage)?.title || 'Dashboard'}
+                {activeMenuItem?.title || 'Dashboard'}
               </h1>
             </div>
             <div className="flex items-center gap-4">
@@ -113,7 +130,7 @@ export function Layout({ children }: LayoutProps) {
           </header>
 
           <main className="flex-1 p-6">
-            {children({ currentPage })}
+            {children({ currentPage: currentTab })}
           </main>
         </div>
       </div>
