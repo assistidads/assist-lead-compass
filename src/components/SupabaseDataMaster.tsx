@@ -123,7 +123,7 @@ export function SupabaseDataMaster() {
     }
   };
 
-  const getTableName = (tab: string) => {
+  const getTableName = (tab: string): 'layanan_assist' | 'kode_ads' | 'sumber_leads' | 'alasan_bukan_leads' => {
     switch (tab) {
       case 'layanan':
         return 'layanan_assist';
@@ -134,7 +134,7 @@ export function SupabaseDataMaster() {
       case 'bukan-leads':
         return 'alasan_bukan_leads';
       default:
-        return '';
+        return 'layanan_assist'; // Return a valid default instead of empty string
     }
   };
 

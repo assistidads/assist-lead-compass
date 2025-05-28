@@ -230,21 +230,21 @@ export function SupabaseLaporan() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Total Prospek"
-          value={totalProspek.toString()}
+          value={totalProspek}
           change="+0%"
           trend="up"
           icon="users"
         />
         <MetricCard
           title="Total Leads"
-          value={totalLeads.toString()}
+          value={totalLeads}
           change="+0%"
           trend="up"
           icon="user-check"
         />
         <MetricCard
           title="Bukan Leads"
-          value={totalBukanLeads.toString()}
+          value={totalBukanLeads}
           change="+0%"
           trend="down"
           icon="user-x"
