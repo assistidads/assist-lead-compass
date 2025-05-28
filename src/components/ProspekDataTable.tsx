@@ -1,7 +1,7 @@
-
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Eye, Edit, Trash2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface ProspekData {
   id: number;
@@ -37,6 +37,32 @@ export function ProspekDataTable({
   setCurrentPage,
   itemsPerPage
 }: ProspekDataTableProps) {
+  
+  const handleView = (id: number) => {
+    toast({
+      title: "Detail Prospek",
+      description: `Menampilkan detail prospek dengan ID: ${id}`,
+    });
+    console.log('View prospek:', id);
+  };
+
+  const handleEdit = (id: number) => {
+    toast({
+      title: "Edit Prospek",
+      description: `Mengedit prospek dengan ID: ${id}`,
+    });
+    console.log('Edit prospek:', id);
+  };
+
+  const handleDelete = (id: number) => {
+    toast({
+      title: "Hapus Prospek",
+      description: `Menghapus prospek dengan ID: ${id}`,
+      variant: "destructive",
+    });
+    console.log('Delete prospek:', id);
+  };
+
   return (
     <Card className="bg-white border border-gray-200">
       <CardContent className="p-0">
@@ -97,13 +123,28 @@ export function ProspekDataTable({
                   <td className="py-3 px-4 text-sm text-gray-900">{item.picLeads}</td>
                   <td className="py-3 px-4">
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleView(item.id)}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleEdit(item.id)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline" className="h-8 w-8 p-0 text-red-600 hover:text-red-700">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        onClick={() => handleDelete(item.id)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ProspekFilter } from './ProspekFilter';
 import { ProspekFilterSummary } from './ProspekFilterSummary';
 import { ProspekDataTable } from './ProspekDataTable';
-import { ProspekForm } from './ProspekForm';
 
 const prospekData = [
   {
@@ -65,6 +65,7 @@ const prospekData = [
 ];
 
 export function ProspekTable() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   
   // Filter states
@@ -166,22 +167,13 @@ export function ProspekTable() {
       {/* Header Actions */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <Sheet open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <SheetTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Tambah Prospek
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-full max-w-4xl overflow-y-auto">
-              <SheetHeader>
-                <SheetTitle>Tambah Prospek Baru</SheetTitle>
-              </SheetHeader>
-              <div className="mt-6">
-                <ProspekForm />
-              </div>
-            </SheetContent>
-          </Sheet>
+          <Button 
+            className="bg-blue-600 hover:bg-blue-700"
+            onClick={() => navigate('/tambah-prospek')}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Tambah Prospek
+          </Button>
           <h2 className="text-xl font-semibold text-gray-900">Data Prospek</h2>
         </div>
       </div>
