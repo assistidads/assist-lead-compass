@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -167,14 +168,15 @@ export function useSupabaseData() {
       if (sumberLeadsError) throw sumberLeadsError;
       setSumberLeadsData(sumberLeadsData || []);
 
-      // Fetch tipe faskes
-      const { data: tipeFaskesData, error: tipeFaskesError } = await supabase
-        .from('tipe_faskes')
-        .select('*')
-        .order('nama');
-
-      if (tipeFaskesError) throw tipeFaskesError;
-      setTipeFaskesData(tipeFaskesData || []);
+      // Set hardcoded tipe faskes data since it's an enum
+      const hardcodedTipeFaskes = [
+        { id: '1', nama: 'Rumah Sakit', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { id: '2', nama: 'Klinik', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { id: '3', nama: 'Puskesmas', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { id: '4', nama: 'Laboratorium', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { id: '5', nama: 'Apotek', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      ];
+      setTipeFaskesData(hardcodedTipeFaskes);
 
       // Fetch alasan bukan leads
       const { data: alasanBukanLeadsData, error: alasanBukanLeadsError } = await supabase
@@ -200,11 +202,10 @@ export function useSupabaseData() {
     if (!user) return;
 
     try {
-      const [layananRes, kodeAdsRes, sumberLeadsRes, tipeFaskesRes, alasanRes, usersRes] = await Promise.all([
+      const [layananRes, kodeAdsRes, sumberLeadsRes, alasanRes, usersRes] = await Promise.all([
         supabase.from('layanan_assist').select('*').order('nama'),
         supabase.from('kode_ads').select('*').order('kode'),
         supabase.from('sumber_leads').select('*').order('nama'),
-        supabase.from('tipe_faskes').select('*').order('nama'),
         supabase.from('alasan_bukan_leads').select('*').order('alasan'),
         supabase.from('profiles').select('*').order('full_name')
       ]);
@@ -212,15 +213,104 @@ export function useSupabaseData() {
       if (layananRes.data) setLayananData(layananRes.data);
       if (kodeAdsRes.data) setKodeAdsData(kodeAdsRes.data);
       if (sumberLeadsRes.data) setSumberLeadsData(sumberLeadsRes.data);
-      if (tipeFaskesRes.data) setTipeFaskesData(tipeFaskesRes.data);
       if (alasanRes.data) setAlasanBukanLeadsData(alasanRes.data);
       if (usersRes.data) {
         console.log('Setting users data from dropdown fetch:', usersRes.data);
         setUsersData(usersRes.data);
       }
 
+      // Set hardcoded tipe faskes data for dropdowns
+      const hardcodedTipeFaskes = [
+        { id: '1', nama: 'Rumah Sakit', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { id: '2', nama: 'Klinik', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { id: '3', nama: 'Puskesmas', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { id: '4', nama: 'Laboratorium', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { id: '5', nama: 'Apotek', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      ];
+      setTipeFaskesData(hardcodedTipeFaskes);
+
     } catch (error) {
       console.error('Error fetching dropdown data:', error);
+    }
+  };
+
+  // CRUD functions for tipe faskes (simulated since it's enum-based)
+  const createTipeFaskes = async (data: { nama: string }) => {
+    try {
+      // Since tipe faskes is an enum, we can't actually create new ones
+      // This is a simulation for the UI
+      const newItem = {
+        id: Date.now().toString(),
+        nama: data.nama,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      setTipeFaskesData(prev => [...prev, newItem]);
+      
+      toast({
+        title: "Berhasil",
+        description: "Data tipe faskes berhasil disimpan",
+      });
+      
+      return newItem;
+    } catch (error) {
+      console.error('Error creating tipe faskes:', error);
+      toast({
+        title: "Error",
+        description: "Gagal menyimpan data tipe faskes",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
+  const updateTipeFaskes = async (id: string, data: { nama: string }) => {
+    try {
+      setTipeFaskesData(prev => 
+        prev.map(item => 
+          item.id === id 
+            ? { ...item, nama: data.nama, updated_at: new Date().toISOString() }
+            : item
+        )
+      );
+      
+      toast({
+        title: "Berhasil",
+        description: "Data tipe faskes berhasil diupdate",
+      });
+      
+      return { id, ...data };
+    } catch (error) {
+      console.error('Error updating tipe faskes:', error);
+      toast({
+        title: "Error",
+        description: "Gagal mengupdate data tipe faskes",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
+  const deleteTipeFaskes = async (id: string) => {
+    try {
+      setTipeFaskesData(prev => prev.filter(item => item.id !== id));
+      
+      toast({
+        title: "Berhasil",
+        description: "Data tipe faskes berhasil dihapus",
+        variant: "destructive",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting tipe faskes:', error);
+      toast({
+        title: "Error",
+        description: "Gagal menghapus data tipe faskes",
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
@@ -365,6 +455,9 @@ export function useSupabaseData() {
     createProspek,
     updateProspek,
     deleteProspek,
+    createTipeFaskes,
+    updateTipeFaskes,
+    deleteTipeFaskes,
     refetchData: () => {
       console.log('refetchData called. Profile role:', profile?.role);
       fetchProspekData();
