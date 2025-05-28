@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface SupabaseDataMasterModalProps {
   isOpen: boolean;
@@ -22,14 +24,84 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
     if (mode === 'edit' && data) {
       setFormData(data);
     } else {
-      setFormData({});
+      // Initialize with proper default values for each type
+      if (type === 'user') {
+        setFormData({
+          full_name: '',
+          email: '',
+          role: 'cs_support'
+        });
+      } else {
+        setFormData({});
+      }
     }
-  }, [mode, data, isOpen]);
+  }, [mode, data, isOpen, type]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
-    onClose();
+    
+    try {
+      if (type === 'user') {
+        // Handle user creation/update differently since it involves auth
+        if (mode === 'add') {
+          // For adding new user, we need to create auth user first
+          const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+            email: formData.email,
+            password: 'TempPassword123!', // You might want to generate a random password
+            email_confirm: true,
+            user_metadata: {
+              full_name: formData.full_name,
+              role: formData.role
+            }
+          });
+
+          if (authError) {
+            console.error('Auth error:', authError);
+            toast({
+              title: "Error",
+              description: `Gagal membuat user: ${authError.message}`,
+              variant: "destructive",
+            });
+            return;
+          }
+
+          // Profile will be created automatically by trigger
+          toast({
+            title: "Berhasil",
+            description: "User berhasil ditambahkan",
+          });
+        } else {
+          // For editing, update the profile directly
+          const { error } = await supabase
+            .from('profiles')
+            .update({
+              full_name: formData.full_name,
+              email: formData.email,
+              role: formData.role
+            })
+            .eq('id', data.id);
+
+          if (error) throw error;
+
+          toast({
+            title: "Berhasil",
+            description: "User berhasil diupdate",
+          });
+        }
+      } else {
+        // Handle other data types normally
+        onSave(formData);
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error('Error saving user:', error);
+      toast({
+        title: "Error",
+        description: "Gagal menyimpan data user",
+        variant: "destructive",
+      });
+    }
   };
 
   const renderFields = () => {
@@ -127,18 +199,12 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
         return (
           <div>
             <Label htmlFor="nama">Status Leads</Label>
-            <Select value={formData?.nama || ''} onValueChange={(value) => setFormData({ ...formData, nama: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Prospek">Prospek</SelectItem>
-                <SelectItem value="Dihubungi">Dihubungi</SelectItem>
-                <SelectItem value="Leads">Leads</SelectItem>
-                <SelectItem value="Bukan Leads">Bukan Leads</SelectItem>
-                <SelectItem value="On Going">On Going</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              id="nama"
+              value={formData?.nama || ''}
+              onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
+              required
+            />
           </div>
         );
       case 'bukan-leads':
