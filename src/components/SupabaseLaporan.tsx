@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -185,45 +184,6 @@ export function SupabaseLaporan() {
         </CardContent>
       </Card>
 
-      {/* Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Prospek</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{totalProspek}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Leads</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{totalLeads}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Bukan Leads</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{totalBukanLeads}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white border border-gray-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Conversion Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{conversionRate}%</div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Detailed Reports with Tabs */}
       <Card className="bg-white border border-gray-200">
         <CardHeader>
@@ -241,27 +201,27 @@ export function SupabaseLaporan() {
             </TabsList>
             
             <TabsContent value="sumber-leads">
-              <Laporan reportType="sumber-leads" />
+              <Laporan reportType="sumber-leads" filteredData={filteredData} />
             </TabsContent>
             
             <TabsContent value="kode-ads">
-              <Laporan reportType="kode-ads" />
+              <Laporan reportType="kode-ads" filteredData={filteredData} />
             </TabsContent>
             
             <TabsContent value="layanan-assist">
-              <Laporan reportType="layanan-assist" />
+              <Laporan reportType="layanan-assist" filteredData={filteredData} />
             </TabsContent>
             
             <TabsContent value="performa-cs">
-              <Laporan reportType="performa-cs" />
+              <Laporan reportType="performa-cs" filteredData={filteredData} />
             </TabsContent>
             
             <TabsContent value="kota-kabupaten">
-              <Laporan reportType="kota-kabupaten" />
+              <Laporan reportType="kota-kabupaten" filteredData={filteredData} />
             </TabsContent>
             
             <TabsContent value="heatmap">
-              <Laporan reportType="heatmap" />
+              <Laporan reportType="heatmap" filteredData={filteredData} />
             </TabsContent>
           </Tabs>
         </CardContent>
