@@ -11,12 +11,16 @@ const COLORS = ['#2563eb', '#16a34a', '#eab308', '#dc2626', '#7c3aed'];
 
 interface LaporanProps {
   reportType?: string;
+  filteredData?: any[];
 }
 
-export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
+export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanProps) {
   const { prospekData, sumberLeadsData, kodeAdsData, layananData, loading } = useSupabaseData();
   const [activeTab, setActiveTab] = useState(reportType);
   const chartRef = useRef<HTMLDivElement>(null);
+
+  // Use filteredData if provided, otherwise use prospekData
+  const dataToUse = filteredData || prospekData;
 
   // Data untuk chart sumber leads dengan Organik
   const sumberLeadsChartData = useMemo(() => {
@@ -27,33 +31,38 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
     );
     
     const organikProspekCount = organikSources.reduce((total, sumber) => {
-      return total + prospekData.filter(item => item.sumber_leads?.nama === sumber.nama).length;
+      return total + dataToUse.filter(item => item.sumber_leads?.nama === sumber.nama).length;
     }, 0);
     
     const organikLeadsCount = organikSources.reduce((total, sumber) => {
-      return total + prospekData.filter(item => 
+      return total + dataToUse.filter(item => 
         item.sumber_leads?.nama === sumber.nama && item.status_leads === 'Leads'
       ).length;
     }, 0);
     
     const organikCtr = organikProspekCount > 0 ? (organikLeadsCount / organikProspekCount) * 100 : 0;
 
-    // Regular sumber leads data
-    const regularData = sumberLeadsData.map(sumber => {
-      const prospekCount = prospekData.filter(item => item.sumber_leads?.nama === sumber.nama).length;
-      const leadsCount = prospekData.filter(item => 
-        item.sumber_leads?.nama === sumber.nama && item.status_leads === 'Leads'
-      ).length;
-      const ctr = prospekCount > 0 ? (leadsCount / prospekCount) * 100 : 0;
-      
-      return {
-        name: sumber.nama,
-        value: prospekCount,
-        prospek: prospekCount,
-        leads: leadsCount,
-        ctr: parseFloat(ctr.toFixed(1))
-      };
-    }).filter(item => item.value > 0);
+    // Only show sumber leads that contain "Ads" (excluding organik sources)
+    const adsData = sumberLeadsData
+      .filter(sumber => 
+        sumber.nama.toLowerCase().includes('ads') || 
+        sumber.nama.toLowerCase().includes('refferal')
+      )
+      .map(sumber => {
+        const prospekCount = dataToUse.filter(item => item.sumber_leads?.nama === sumber.nama).length;
+        const leadsCount = dataToUse.filter(item => 
+          item.sumber_leads?.nama === sumber.nama && item.status_leads === 'Leads'
+        ).length;
+        const ctr = prospekCount > 0 ? (leadsCount / prospekCount) * 100 : 0;
+        
+        return {
+          name: sumber.nama,
+          value: prospekCount,
+          prospek: prospekCount,
+          leads: leadsCount,
+          ctr: parseFloat(ctr.toFixed(1))
+        };
+      }).filter(item => item.value > 0);
 
     // Add Organik data at the beginning if it has data
     const result = [];
@@ -66,8 +75,8 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
         ctr: parseFloat(organikCtr.toFixed(1)),
         isOrganik: true,
         organikBreakdown: organikSources.map(sumber => {
-          const prospekCount = prospekData.filter(item => item.sumber_leads?.nama === sumber.nama).length;
-          const leadsCount = prospekData.filter(item => 
+          const prospekCount = dataToUse.filter(item => item.sumber_leads?.nama === sumber.nama).length;
+          const leadsCount = dataToUse.filter(item => 
             item.sumber_leads?.nama === sumber.nama && item.status_leads === 'Leads'
           ).length;
           const ctr = prospekCount > 0 ? (leadsCount / prospekCount) * 100 : 0;
@@ -82,13 +91,13 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
       });
     }
     
-    return [...result, ...regularData];
-  }, [prospekData, sumberLeadsData]);
+    return [...result, ...adsData];
+  }, [dataToUse, sumberLeadsData]);
 
   // Data untuk chart kode ads dengan breakdown ID Ads
   const kodeAdsChartData = useMemo(() => {
     return kodeAdsData.map(kode => {
-      const prospekItems = prospekData.filter(item => item.kode_ads?.kode === kode.kode);
+      const prospekItems = dataToUse.filter(item => item.kode_ads?.kode === kode.kode);
       const prospekCount = prospekItems.length;
       const leadsCount = prospekItems.filter(item => item.status_leads === 'Leads').length;
       const ctr = prospekCount > 0 ? (leadsCount / prospekCount) * 100 : 0;
@@ -125,12 +134,12 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
         idAdsBreakdown: shouldShowBreakdown ? idAdsBreakdownArray : []
       };
     }).filter(item => item.value > 0);
-  }, [prospekData, kodeAdsData]);
+  }, [dataToUse, kodeAdsData]);
 
   // Data untuk chart layanan
   const layananChartData = useMemo(() => {
     return layananData.map(layanan => {
-      const prospekItems = prospekData.filter(item => item.layanan_assist?.nama === layanan.nama);
+      const prospekItems = dataToUse.filter(item => item.layanan_assist?.nama === layanan.nama);
       const prospekCount = prospekItems.length;
       const leadsCount = prospekItems.filter(item => item.status_leads === 'Leads').length;
       const ctr = prospekCount > 0 ? (leadsCount / prospekCount) * 100 : 0;
@@ -143,11 +152,11 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
         ctr: parseFloat(ctr.toFixed(1))
       };
     }).filter(item => item.value > 0);
-  }, [prospekData, layananData]);
+  }, [dataToUse, layananData]);
 
   // Data untuk chart kota/kabupaten
   const kotaKabupatenChartData = useMemo(() => {
-    const kotaCounts = prospekData.reduce((acc, item) => {
+    const kotaCounts = dataToUse.reduce((acc, item) => {
       const kota = item.kota;
       if (!acc[kota]) {
         acc[kota] = { prospek: 0, leads: 0 };
@@ -166,11 +175,11 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
       leads: data.leads,
       ctr: data.prospek > 0 ? parseFloat(((data.leads / data.prospek) * 100).toFixed(1)) : 0
     })).filter(item => item.value > 0);
-  }, [prospekData]);
+  }, [dataToUse]);
 
   // Data untuk performa CS
   const performaCSData = useMemo(() => {
-    const csPerformance = prospekData.reduce((acc, item) => {
+    const csPerformance = dataToUse.reduce((acc, item) => {
       const csName = item.created_by_profile?.full_name || 'Unknown';
       if (!acc[csName]) {
         acc[csName] = { prospek: 0, leads: 0, bukanLeads: 0 };
@@ -191,7 +200,7 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
       bukanLeads: data.bukanLeads,
       ctr: data.prospek > 0 ? parseFloat(((data.leads / data.prospek) * 100).toFixed(1)) : 0
     }));
-  }, [prospekData]);
+  }, [dataToUse]);
 
   // Data untuk heatmap waktu/hari aktivitas prospek dan leads
   const heatmapData = useMemo(() => {
@@ -202,12 +211,12 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
     
     daysOfWeek.forEach(day => {
       for (let hour = 0; hour < 24; hour++) {
-        const prospekCount = prospekData.filter(item => {
+        const prospekCount = dataToUse.filter(item => {
           const date = new Date(item.tanggal_prospek);
           return daysOfWeek[date.getDay()] === day && date.getHours() === hour;
         }).length;
 
-        const leadsCount = prospekData.filter(item => {
+        const leadsCount = dataToUse.filter(item => {
           const date = new Date(item.tanggal_prospek);
           return daysOfWeek[date.getDay()] === day && date.getHours() === hour && item.status_leads === 'Leads';
         }).length;
@@ -223,12 +232,12 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
 
     // Analisis berdasarkan hari dalam seminggu
     const dayActivity = daysOfWeek.map(day => {
-      const dayProspekCount = prospekData.filter(item => {
+      const dayProspekCount = dataToUse.filter(item => {
         const date = new Date(item.tanggal_prospek);
         return daysOfWeek[date.getDay()] === day;
       }).length;
 
-      const dayLeadsCount = prospekData.filter(item => {
+      const dayLeadsCount = dataToUse.filter(item => {
         const date = new Date(item.tanggal_prospek);
         return daysOfWeek[date.getDay()] === day && item.status_leads === 'Leads';
       }).length;
@@ -242,7 +251,7 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
     });
 
     return { dayActivity, heatmapMatrix };
-  }, [prospekData]);
+  }, [dataToUse]);
 
   const downloadChartAsPNG = () => {
     if (chartRef.current) {
@@ -411,16 +420,9 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
                         <div className="w-full">
                           <Accordion type="single" collapsible className="w-full">
                             <AccordionItem value="organik" className="border-none">
-                              <AccordionTrigger className="hover:no-underline p-0 font-medium text-gray-900">
-                                <div className="flex items-center justify-between w-full">
+                              <AccordionTrigger className="hover:no-underline p-0 font-medium text-gray-900 [&[data-state=open]>div]:bg-transparent">
+                                <div className="flex items-center justify-between w-full py-0">
                                   <span>{item.name}</span>
-                                  <div className="flex items-center gap-6 text-center">
-                                    <span className="w-16">{item.prospek}</span>
-                                    <span className="w-16">{item.leads}</span>
-                                    <span className={`inline-flex px-3 py-1 text-xs rounded-full w-20 justify-center ${getCTRColor(item.ctr)}`}>
-                                      {item.ctr}%
-                                    </span>
-                                  </div>
                                 </div>
                               </AccordionTrigger>
                               <AccordionContent className="pt-2 pl-4">
@@ -446,17 +448,13 @@ export function Laporan({ reportType = 'sumber-leads' }: LaporanProps) {
                         item.name
                       )}
                     </td>
-                    {!item.isOrganik && (
-                      <>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
-                            {item.ctr}%
-                          </span>
-                        </td>
-                      </>
-                    )}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                        {item.ctr}%
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
