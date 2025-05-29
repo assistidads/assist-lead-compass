@@ -4,8 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SupabaseProspekFormData } from '@/hooks/useSupabaseProspekForm';
 
-const statusLeads = ['Prospek', 'Dihubungi', 'Leads', 'Bukan Leads', 'On Going'];
-
 interface SupabaseProspekFormBasicFieldsProps {
   formData: SupabaseProspekFormData;
   onInputChange: (field: string, value: string) => void;
@@ -16,17 +14,17 @@ interface SupabaseProspekFormBasicFieldsProps {
 export function SupabaseProspekFormBasicFields({ 
   formData, 
   onInputChange, 
-  sumberLeadsOptions,
+  sumberLeadsOptions, 
   kodeAdsOptions 
 }: SupabaseProspekFormBasicFieldsProps) {
   const selectedSumber = sumberLeadsOptions.find(s => s.id === formData.sumber_leads_id);
-  const showKodeAds = selectedSumber?.nama.toLowerCase().includes('ads');
+  const isAdsSource = selectedSumber?.nama?.toLowerCase().includes('ads');
 
   return (
     <>
-      {/* Tanggal Prospek Masuk */}
+      {/* Tanggal Prospek */}
       <div>
-        <Label htmlFor="tanggal_prospek">Tanggal Prospek Masuk <span className="text-red-500">*</span></Label>
+        <Label htmlFor="tanggal_prospek">Tanggal Prospek <span className="text-red-500">*</span></Label>
         <Input
           id="tanggal_prospek"
           type="date"
@@ -52,7 +50,7 @@ export function SupabaseProspekFormBasicFields({
       </div>
 
       {/* Kode Ads - Conditional */}
-      {showKodeAds && (
+      {isAdsSource && (
         <div>
           <Label htmlFor="kode_ads_id">Kode Ads <span className="text-red-500">*</span></Label>
           <Select value={formData.kode_ads_id} onValueChange={(value) => onInputChange('kode_ads_id', value)} required>
@@ -69,20 +67,17 @@ export function SupabaseProspekFormBasicFields({
       )}
 
       {/* ID Ads - Conditional */}
-      {showKodeAds && formData.kode_ads_id && (
+      {isAdsSource && (
         <div>
           <Label htmlFor="id_ads">ID Ads <span className="text-red-500">*</span></Label>
-          <Select value={formData.id_ads} onValueChange={(value) => onInputChange('id_ads', value)} required>
-            <SelectTrigger>
-              <SelectValue placeholder="Pilih ID ads" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Form">Form</SelectItem>
-              {Array.from({length: 21}, (_, i) => (
-                <SelectItem key={i} value={i.toString()}>{i}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Input
+            id="id_ads"
+            value={formData.id_ads}
+            onChange={(e) => onInputChange('id_ads', e.target.value)}
+            placeholder="Masukkan ID ads"
+            autoComplete="off"
+            required
+          />
         </div>
       )}
 
@@ -94,6 +89,7 @@ export function SupabaseProspekFormBasicFields({
           value={formData.nama_prospek}
           onChange={(e) => onInputChange('nama_prospek', e.target.value)}
           placeholder="Masukkan nama prospek"
+          autoComplete="off"
           required
         />
       </div>
@@ -105,24 +101,10 @@ export function SupabaseProspekFormBasicFields({
           id="no_whatsapp"
           value={formData.no_whatsapp}
           onChange={(e) => onInputChange('no_whatsapp', e.target.value)}
-          placeholder="Contoh: 081234567890"
+          placeholder="Masukkan nomor WhatsApp"
+          autoComplete="off"
           required
         />
-      </div>
-
-      {/* Status Leads */}
-      <div>
-        <Label htmlFor="status_leads">Status Leads <span className="text-red-500">*</span></Label>
-        <Select value={formData.status_leads} onValueChange={(value) => onInputChange('status_leads', value)} required>
-          <SelectTrigger>
-            <SelectValue placeholder="Pilih status leads" />
-          </SelectTrigger>
-          <SelectContent>
-            {statusLeads.map(item => (
-              <SelectItem key={item} value={item}>{item}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
     </>
   );

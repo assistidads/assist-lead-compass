@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -59,19 +58,15 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
             return;
           }
 
-          // Get current session to restore later
-          const { data: currentSession } = await supabase.auth.getSession();
-
-          // Create user using signup with autoConfirm disabled to prevent auto-login
-          const { data: authData, error: authError } = await supabase.auth.signUp({
+          // Create user using admin API (server-side function would be better)
+          const { data: authData, error: authError } = await supabase.auth.admin.createUser({
             email: formData.email,
             password: formData.password,
-            options: {
-              data: {
-                full_name: formData.full_name,
-                role: formData.role
-              }
-            }
+            user_metadata: {
+              full_name: formData.full_name,
+              role: formData.role
+            },
+            email_confirm: true // Skip email confirmation for admin-created users
           });
 
           if (authError) {
@@ -82,16 +77,6 @@ export function SupabaseDataMasterModal({ isOpen, onClose, data, type, mode, onS
               variant: "destructive",
             });
             return;
-          }
-
-          // If the signup caused an auto-login, sign out immediately
-          if (authData.session) {
-            await supabase.auth.signOut();
-            
-            // Restore the original session if it existed
-            if (currentSession.session) {
-              await supabase.auth.setSession(currentSession.session);
-            }
           }
 
           // Profile will be created automatically by trigger

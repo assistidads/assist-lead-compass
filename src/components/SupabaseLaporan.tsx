@@ -3,189 +3,127 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Download } from 'lucide-react';
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, subWeeks, subMonths } from 'date-fns';
-import { id } from 'date-fns/locale';
-import { useSupabaseData } from '@/hooks/useSupabaseData';
-import { useAuth } from '@/contexts/AuthContext';
-import { MetricCard } from './MetricCard';
-import { Laporan } from './Laporan';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
+
+type TimeFilter = 'today' | 'yesterday' | 'this-week' | 'last-week' | 'this-month' | 'last-month' | 'custom';
+
+interface DateRange {
+  from: Date | undefined;
+  to: Date | undefined;
+}
 
 export function SupabaseLaporan() {
-  const { prospekData, sumberLeadsData, loading } = useSupabaseData();
-  const { profile } = useAuth();
-  const [dateFrom, setDateFrom] = useState<Date>();
-  const [dateTo, setDateTo] = useState<Date>();
-  const [timeFilter, setTimeFilter] = useState<string>('all');
-  const [customDateFrom, setCustomDateFrom] = useState<Date>();
-  const [customDateTo, setCustomDateTo] = useState<Date>();
-  const [sumberFilter, setSumberFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const { prospekData } = useSupabaseData();
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('today');
+  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
+  const [filteredData, setFilteredData] = useState(prospekData);
 
-  // Handle time filter changes
+  // Filter data based on time selection
   useEffect(() => {
-    const today = new Date();
-    
+    const now = new Date();
+    let startDate: Date;
+    let endDate: Date = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
     switch (timeFilter) {
       case 'today':
-        setDateFrom(startOfDay(today));
-        setDateTo(endOfDay(today));
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         break;
       case 'yesterday':
-        const yesterday = subDays(today, 1);
-        setDateFrom(startOfDay(yesterday));
-        setDateTo(endOfDay(yesterday));
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        startDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+        endDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 59, 59);
         break;
       case 'this-week':
-        setDateFrom(startOfWeek(today, { weekStartsOn: 1 }));
-        setDateTo(endOfWeek(today, { weekStartsOn: 1 }));
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        startDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate());
         break;
       case 'last-week':
-        const lastWeekStart = startOfWeek(subWeeks(today, 1), { weekStartsOn: 1 });
-        const lastWeekEnd = endOfWeek(subWeeks(today, 1), { weekStartsOn: 1 });
-        setDateFrom(lastWeekStart);
-        setDateTo(lastWeekEnd);
+        const startOfLastWeek = new Date(now);
+        startOfLastWeek.setDate(now.getDate() - now.getDay() - 7);
+        const endOfLastWeek = new Date(startOfLastWeek);
+        endOfLastWeek.setDate(startOfLastWeek.getDate() + 6);
+        startDate = new Date(startOfLastWeek.getFullYear(), startOfLastWeek.getMonth(), startOfLastWeek.getDate());
+        endDate = new Date(endOfLastWeek.getFullYear(), endOfLastWeek.getMonth(), endOfLastWeek.getDate(), 23, 59, 59);
         break;
       case 'this-month':
-        setDateFrom(startOfMonth(today));
-        setDateTo(endOfMonth(today));
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         break;
       case 'last-month':
-        const lastMonth = subMonths(today, 1);
-        setDateFrom(startOfMonth(lastMonth));
-        setDateTo(endOfMonth(lastMonth));
+        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+        startDate = lastMonth;
+        endDate = new Date(endOfLastMonth.getFullYear(), endOfLastMonth.getMonth(), endOfLastMonth.getDate(), 23, 59, 59);
         break;
       case 'custom':
-        setDateFrom(customDateFrom);
-        setDateTo(customDateTo);
-        break;
-      case 'all':
-        setDateFrom(undefined);
-        setDateTo(undefined);
+        if (dateRange.from && dateRange.to) {
+          startDate = new Date(dateRange.from.getFullYear(), dateRange.from.getMonth(), dateRange.from.getDate());
+          endDate = new Date(dateRange.to.getFullYear(), dateRange.to.getMonth(), dateRange.to.getDate(), 23, 59, 59);
+        } else {
+          setFilteredData(prospekData);
+          return;
+        }
         break;
       default:
-        break;
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     }
-  }, [timeFilter, customDateFrom, customDateTo]);
 
-  // Filter data berdasarkan tanggal, sumber, dan status
-  const filteredData = prospekData.filter(item => {
-    const itemDate = new Date(item.tanggal_prospek);
-    const dateFilter = (!dateFrom || itemDate >= dateFrom) && (!dateTo || itemDate <= dateTo);
-    const sumberFilterMatch = sumberFilter === 'all' || item.sumber_leads?.nama === sumberFilter;
-    const statusFilterMatch = statusFilter === 'all' || item.status_leads === statusFilter;
-    
-    return dateFilter && sumberFilterMatch && statusFilterMatch;
-  });
+    const filtered = prospekData.filter(item => {
+      const itemDate = new Date(item.tanggal_prospek);
+      return itemDate >= startDate && itemDate <= endDate;
+    });
 
-  // Hitung metrics
+    setFilteredData(filtered);
+  }, [timeFilter, dateRange, prospekData]);
+
+  // Calculate metrics based on filtered data
   const totalProspek = filteredData.length;
   const totalLeads = filteredData.filter(item => item.status_leads === 'Leads').length;
   const totalBukanLeads = filteredData.filter(item => item.status_leads === 'Bukan Leads').length;
   const conversionRate = totalProspek > 0 ? ((totalLeads / totalProspek) * 100).toFixed(1) : '0';
 
-  // Data untuk chart (breakdown by sumber leads)
-  const sumberLeadsBreakdown = sumberLeadsData.map(sumber => {
-    const count = filteredData.filter(item => item.sumber_leads?.nama === sumber.nama).length;
-    return {
-      name: sumber.nama,
-      value: count
-    };
-  }).filter(item => item.value > 0);
+  // Group by status leads for chart data
+  const statusCounts = filteredData.reduce((acc, item) => {
+    acc[item.status_leads] = (acc[item.status_leads] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
-  // Data untuk chart (breakdown by status)
-  const statusBreakdown = [
-    { name: 'Prospek', value: filteredData.filter(item => item.status_leads === 'Prospek').length },
-    { name: 'Dihubungi', value: filteredData.filter(item => item.status_leads === 'Dihubungi').length },
-    { name: 'Leads', value: filteredData.filter(item => item.status_leads === 'Leads').length },
-    { name: 'Bukan Leads', value: filteredData.filter(item => item.status_leads === 'Bukan Leads').length },
-    { name: 'On Going', value: filteredData.filter(item => item.status_leads === 'On Going').length }
-  ].filter(item => item.value > 0);
-
-  const handleExport = () => {
-    // Create CSV content
-    const headers = [
-      'Tanggal Prospek',
-      'Nama Prospek', 
-      'No WhatsApp',
-      'Sumber Leads',
-      'Status Leads',
-      'Nama Faskes',
-      'Tipe Faskes',
-      'Provinsi',
-      'Kota',
-      'PIC Leads'
-    ];
-
-    const csvContent = [
-      headers.join(','),
-      ...filteredData.map(item => [
-        item.tanggal_prospek,
-        `"${item.nama_prospek}"`,
-        item.no_whatsapp,
-        `"${item.sumber_leads?.nama || ''}"`,
-        item.status_leads,
-        `"${item.nama_faskes}"`,
-        item.tipe_faskes,
-        `"${item.provinsi_nama}"`,
-        `"${item.kota}"`,
-        `"${item.pic_leads?.full_name || ''}"`
-      ].join(','))
-    ].join('\n');
-
-    // Download CSV
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `laporan-prospek-${format(new Date(), 'yyyy-MM-dd')}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center py-8">
-          <div className="text-gray-500">Memuat data laporan...</div>
-        </div>
-      </div>
-    );
-  }
+  // Group by sumber leads for chart data
+  const sumberCounts = filteredData.reduce((acc, item) => {
+    const sumber = item.sumber_leads?.nama || 'Unknown';
+    acc[sumber] = (acc[sumber] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Laporan Prospek</h2>
-        <p className="text-gray-600">
-          {profile?.role === 'cs_support' 
-            ? 'Laporan data prospek yang Anda input'
-            : 'Laporan keseluruhan data prospek'
-          }
-        </p>
+        <p className="text-gray-600">Dashboard analisis data prospek dan konversi leads</p>
       </div>
 
-      {/* Filter Section */}
+      {/* Time Filter */}
       <Card className="bg-white border border-gray-200">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900">Filter Laporan</CardTitle>
+          <CardTitle className="text-lg font-semibold text-gray-900">Filter Waktu</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-            {/* Time Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Periode Waktu</label>
-              <Select value={timeFilter} onValueChange={setTimeFilter}>
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="min-w-[200px]">
+              <Label htmlFor="time-filter">Periode</Label>
+              <Select value={timeFilter} onValueChange={(value: TimeFilter) => setTimeFilter(value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih periode" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Waktu</SelectItem>
                   <SelectItem value="today">Hari Ini</SelectItem>
                   <SelectItem value="yesterday">Kemarin</SelectItem>
                   <SelectItem value="this-week">Minggu Ini</SelectItem>
@@ -197,183 +135,141 @@ export function SupabaseLaporan() {
               </Select>
             </div>
 
-            {/* Custom Date From - only show when custom is selected */}
             {timeFilter === 'custom' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal Dari</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !customDateFrom && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {customDateFrom ? format(customDateFrom, "PPP", { locale: id }) : "Pilih tanggal"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={customDateFrom}
-                      onSelect={setCustomDateFrom}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+              <>
+                <div>
+                  <Label>Tanggal Mulai</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-[240px] justify-start text-left font-normal",
+                          !dateRange.from && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange.from ? format(dateRange.from, "PPP") : "Pilih tanggal"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dateRange.from}
+                        onSelect={(date) => setDateRange(prev => ({ ...prev, from: date }))}
+                        disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div>
+                  <Label>Tanggal Selesai</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-[240px] justify-start text-left font-normal",
+                          !dateRange.to && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange.to ? format(dateRange.to, "PPP") : "Pilih tanggal"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dateRange.to}
+                        onSelect={(date) => setDateRange(prev => ({ ...prev, to: date }))}
+                        disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </>
             )}
-
-            {/* Custom Date To - only show when custom is selected */}
-            {timeFilter === 'custom' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal Sampai</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !customDateTo && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {customDateTo ? format(customDateTo, "PPP", { locale: id }) : "Pilih tanggal"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={customDateTo}
-                      onSelect={setCustomDateTo}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            )}
-
-            {/* Sumber Leads Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Sumber Leads</label>
-              <Select value={sumberFilter} onValueChange={setSumberFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Semua Sumber" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Sumber</SelectItem>
-                  {sumberLeadsData.map(sumber => (
-                    <SelectItem key={sumber.id} value={sumber.nama}>{sumber.nama}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Semua Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="Prospek">Prospek</SelectItem>
-                  <SelectItem value="Dihubungi">Dihubungi</SelectItem>
-                  <SelectItem value="Leads">Leads</SelectItem>
-                  <SelectItem value="Bukan Leads">Bukan Leads</SelectItem>
-                  <SelectItem value="On Going">On Going</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Export Button */}
-            <div className="flex items-end">
-              <Button onClick={handleExport} className="w-full bg-green-600 hover:bg-green-700">
-                <Download className="h-4 w-4 mr-2" />
-                Export CSV
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard
-          title="Total Prospek"
-          value={totalProspek}
-          change={0}
-          icon={undefined}
-        />
-        <MetricCard
-          title="Total Leads"
-          value={totalLeads}
-          change={0}
-          icon={undefined}
-        />
-        <MetricCard
-          title="Bukan Leads"
-          value={totalBukanLeads}
-          change={0}
-          icon={undefined}
-        />
-        <MetricCard
-          title="Conversion Rate"
-          value={`${conversionRate}%`}
-          change={0}
-          icon={undefined}
-        />
+        <Card className="bg-white border border-gray-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Total Prospek</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-900">{totalProspek}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white border border-gray-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Total Leads</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{totalLeads}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white border border-gray-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Bukan Leads</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{totalBukanLeads}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white border border-gray-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Conversion Rate</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{conversionRate}%</div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Summary Table */}
-      <Card className="bg-white border border-gray-200">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900">
-            Ringkasan Data ({filteredData.length} prospek)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Breakdown by Sumber */}
-            <div>
-              <h4 className="font-medium text-gray-900 mb-3">Berdasarkan Sumber Leads</h4>
-              <div className="space-y-2">
-                {sumberLeadsBreakdown.map(item => (
-                  <div key={item.name} className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-sm text-gray-700">{item.name}</span>
-                    <span className="font-medium text-gray-900">{item.value}</span>
-                  </div>
-                ))}
-              </div>
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Status Distribution */}
+        <Card className="bg-white border border-gray-200">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900">Distribusi Status Leads</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {Object.entries(statusCounts).map(([status, count]) => (
+                <div key={status} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <span className="text-gray-700">{status}</span>
+                  <span className="font-semibold text-gray-900">{count}</span>
+                </div>
+              ))}
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Breakdown by Status */}
-            <div>
-              <h4 className="font-medium text-gray-900 mb-3">Berdasarkan Status</h4>
-              <div className="space-y-2">
-                {statusBreakdown.map(item => (
-                  <div key={item.name} className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-sm text-gray-700">{item.name}</span>
-                    <span className="font-medium text-gray-900">{item.value}</span>
-                  </div>
-                ))}
-              </div>
+        {/* Source Distribution */}
+        <Card className="bg-white border border-gray-200">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900">Distribusi Sumber Leads</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {Object.entries(sumberCounts).map(([sumber, count]) => (
+                <div key={sumber} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <span className="text-gray-700">{sumber}</span>
+                  <span className="font-semibold text-gray-900">{count}</span>
+                </div>
+              ))}
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Report Components */}
-      <div className="space-y-8">
-        <Laporan reportType="sumber-leads" />
-        <Laporan reportType="kode-ads" />
-        <Laporan reportType="layanan-assist" />
-        <Laporan reportType="kota-kabupaten" />
-        <Laporan reportType="heatmap" />
-        <Laporan reportType="performa-cs" />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
