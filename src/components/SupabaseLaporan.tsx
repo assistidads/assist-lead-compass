@@ -11,6 +11,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Laporan } from './Laporan';
 
 type TimeFilter = 'today' | 'yesterday' | 'this-week' | 'last-week' | 'this-month' | 'last-month' | 'custom';
 
@@ -89,19 +91,6 @@ export function SupabaseLaporan() {
   const totalLeads = filteredData.filter(item => item.status_leads === 'Leads').length;
   const totalBukanLeads = filteredData.filter(item => item.status_leads === 'Bukan Leads').length;
   const conversionRate = totalProspek > 0 ? ((totalLeads / totalProspek) * 100).toFixed(1) : '0';
-
-  // Group by status leads for chart data
-  const statusCounts = filteredData.reduce((acc, item) => {
-    acc[item.status_leads] = (acc[item.status_leads] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  // Group by sumber leads for chart data
-  const sumberCounts = filteredData.reduce((acc, item) => {
-    const sumber = item.sumber_leads?.nama || 'Unknown';
-    acc[sumber] = (acc[sumber] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
 
   return (
     <div className="space-y-6">
@@ -235,42 +224,48 @@ export function SupabaseLaporan() {
         </Card>
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Status Distribution */}
-        <Card className="bg-white border border-gray-200">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900">Distribusi Status Leads</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {Object.entries(statusCounts).map(([status, count]) => (
-                <div key={status} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                  <span className="text-gray-700">{status}</span>
-                  <span className="font-semibold text-gray-900">{count}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Source Distribution */}
-        <Card className="bg-white border border-gray-200">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900">Distribusi Sumber Leads</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {Object.entries(sumberCounts).map(([sumber, count]) => (
-                <div key={sumber} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                  <span className="text-gray-700">{sumber}</span>
-                  <span className="font-semibold text-gray-900">{count}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Detailed Reports with Tabs */}
+      <Card className="bg-white border border-gray-200">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-gray-900">Laporan Detail</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="sumber-leads" className="w-full">
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="sumber-leads">Sumber Leads</TabsTrigger>
+              <TabsTrigger value="kode-ads">Kode Ads</TabsTrigger>
+              <TabsTrigger value="layanan-assist">Layanan</TabsTrigger>
+              <TabsTrigger value="performa-cs">Performa CS</TabsTrigger>
+              <TabsTrigger value="kota-kabupaten">Kota/Kabupaten</TabsTrigger>
+              <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="sumber-leads">
+              <Laporan reportType="sumber-leads" />
+            </TabsContent>
+            
+            <TabsContent value="kode-ads">
+              <Laporan reportType="kode-ads" />
+            </TabsContent>
+            
+            <TabsContent value="layanan-assist">
+              <Laporan reportType="layanan-assist" />
+            </TabsContent>
+            
+            <TabsContent value="performa-cs">
+              <Laporan reportType="performa-cs" />
+            </TabsContent>
+            
+            <TabsContent value="kota-kabupaten">
+              <Laporan reportType="kota-kabupaten" />
+            </TabsContent>
+            
+            <TabsContent value="heatmap">
+              <Laporan reportType="heatmap" />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }
