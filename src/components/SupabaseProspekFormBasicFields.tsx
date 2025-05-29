@@ -70,14 +70,17 @@ export function SupabaseProspekFormBasicFields({
       {isAdsSource && (
         <div>
           <Label htmlFor="id_ads">ID Ads <span className="text-red-500">*</span></Label>
-          <Input
-            id="id_ads"
-            value={formData.id_ads}
-            onChange={(e) => onInputChange('id_ads', e.target.value)}
-            placeholder="Masukkan ID ads"
-            autoComplete="off"
-            required
-          />
+          <Select value={formData.id_ads} onValueChange={(value) => onInputChange('id_ads', value)} required>
+            <SelectTrigger>
+              <SelectValue placeholder="Pilih ID ads" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Form">Form</SelectItem>
+              {Array.from({length: 21}, (_, i) => (
+                <SelectItem key={i} value={i.toString()}>{i}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 

@@ -85,12 +85,6 @@ export function SupabaseLaporan() {
     setFilteredData(filtered);
   }, [timeFilter, dateRange, prospekData]);
 
-  // Calculate metrics based on filtered data
-  const totalProspek = filteredData.length;
-  const totalLeads = filteredData.filter(item => item.status_leads === 'Leads').length;
-  const totalBukanLeads = filteredData.filter(item => item.status_leads === 'Bukan Leads').length;
-  const conversionRate = totalProspek > 0 ? ((totalLeads / totalProspek) * 100).toFixed(1) : '0';
-
   return (
     <div className="space-y-6">
       <div>
