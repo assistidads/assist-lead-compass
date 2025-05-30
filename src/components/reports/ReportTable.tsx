@@ -1,4 +1,3 @@
-
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ChartDataItem, PerformaCSItem } from './types';
 import { getCTRColor } from './utils';
@@ -25,58 +24,55 @@ export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
           <table className="w-full">
             <thead className="bg-gray-100">
               <tr>
-                {columns.map((column, index) => (
-                  <th key={column} className={`px-6 py-4 text-sm font-semibold text-gray-900 ${index === 0 ? 'text-left' : 'text-center'}`}>
-                    {column}
-                  </th>
-                ))}
+                <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-left">Sumber Leads</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Prospek</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Leads</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">CTR Leads</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {(data as ChartDataItem[]).map((item, index) => (
                 <tr key={index} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {item.isOrganik && item.organikBreakdown && item.organikBreakdown.length > 0 ? (
-                      <div className="w-full">
+                  {item.isOrganik && item.organikBreakdown && item.organikBreakdown.length > 0 ? (
+                    <>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900" colSpan={4}>
                         <Accordion type="single" collapsible className="w-full">
                           <AccordionItem value="organik" className="border-none">
                             <AccordionTrigger className="hover:no-underline p-0 font-medium text-gray-900">
-                              <div className="flex items-center justify-between w-full">
-                                <span>{item.name}</span>
-                                <div className="flex items-center gap-6 text-center">
-                                  <span className="w-16 text-sm">{item.prospek}</span>
-                                  <span className="w-16 text-sm">{item.leads}</span>
-                                  <span className={`inline-flex px-3 py-1 text-xs rounded-full w-20 justify-center ${getCTRColor(item.ctr)}`}>
+                              <div className="w-full grid grid-cols-4 items-center">
+                                <span className="text-left">{item.name}</span>
+                                <span className="text-center text-sm">{item.prospek}</span>
+                                <span className="text-center text-sm">{item.leads}</span>
+                                <span className="text-center">
+                                  <span className={`inline-flex px-3 py-1 text-xs rounded-full justify-center ${getCTRColor(item.ctr)}`}>
                                     {item.ctr}%
                                   </span>
-                                </div>
+                                </span>
                               </div>
                             </AccordionTrigger>
-                            <AccordionContent className="pt-2 pl-4">
+                            <AccordionContent className="pt-2">
                               <div className="space-y-2">
                                 {item.organikBreakdown.map((breakdown, bIndex) => (
-                                  <div key={bIndex} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                                  <div key={bIndex} className="w-full grid grid-cols-4 items-center py-2 border-b border-gray-100 last:border-b-0 pl-4">
                                     <span className="text-sm text-gray-600">{breakdown.name}</span>
-                                    <div className="flex items-center gap-6 text-center">
-                                      <span className="w-16 text-sm text-gray-700">{breakdown.prospek}</span>
-                                      <span className="w-16 text-sm text-gray-700">{breakdown.leads}</span>
-                                      <span className={`inline-flex px-2 py-1 text-xs rounded-full w-20 justify-center ${getCTRColor(breakdown.ctr)}`}>
+                                    <span className="text-center text-sm text-gray-700">{breakdown.prospek}</span>
+                                    <span className="text-center text-sm text-gray-700">{breakdown.leads}</span>
+                                    <span className="text-center">
+                                      <span className={`inline-flex px-2 py-1 text-xs rounded-full justify-center ${getCTRColor(breakdown.ctr)}`}>
                                         {breakdown.ctr}%
                                       </span>
-                                    </div>
+                                    </span>
                                   </div>
                                 ))}
                               </div>
                             </AccordionContent>
                           </AccordionItem>
                         </Accordion>
-                      </div>
-                    ) : (
-                      item.name
-                    )}
-                  </td>
-                  {(!item.isOrganik || !item.organikBreakdown || item.organikBreakdown.length === 0) && (
+                      </td>
+                    </>
+                  ) : (
                     <>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
