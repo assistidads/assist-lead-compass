@@ -9,6 +9,35 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 
 const COLORS = ['#2563eb', '#16a34a', '#eab308', '#dc2626', '#7c3aed'];
 
+interface ChartDataItem {
+  name: string;
+  value: number;
+  prospek: number;
+  leads: number;
+  ctr: number;
+  isOrganik?: boolean;
+  organikBreakdown?: Array<{
+    name: string;
+    prospek: number;
+    leads: number;
+    ctr: number;
+  }>;
+  idAdsBreakdown?: Array<{
+    idAds: string;
+    prospek: number;
+    leads: number;
+    ctr: number;
+  }>;
+}
+
+interface PerformaCSItem {
+  name: string;
+  prospek: number;
+  leads: number;
+  bukanLeads: number;
+  ctr: number;
+}
+
 interface LaporanProps {
   reportType?: string;
   filteredData?: any[];
@@ -23,7 +52,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
   const dataToUse = filteredData || prospekData;
 
   // Data untuk chart sumber leads dengan Organik
-  const sumberLeadsChartData = useMemo(() => {
+  const sumberLeadsChartData = useMemo((): ChartDataItem[] => {
     // Calculate Organik data (sources not containing "Ads" or "Refferal")
     const organikSources = sumberLeadsData.filter(sumber => 
       !sumber.nama.toLowerCase().includes('ads') && 
@@ -43,7 +72,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
     const organikCtr = organikProspekCount > 0 ? (organikLeadsCount / organikProspekCount) * 100 : 0;
 
     // Only show sumber leads that contain "Ads" (excluding organik sources)
-    const adsData = sumberLeadsData
+    const adsData: ChartDataItem[] = sumberLeadsData
       .filter(sumber => 
         sumber.nama.toLowerCase().includes('ads') || 
         sumber.nama.toLowerCase().includes('refferal')
@@ -65,7 +94,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
       }).filter(item => item.value > 0);
 
     // Add Organik data at the beginning if it has data
-    const result = [];
+    const result: ChartDataItem[] = [];
     if (organikProspekCount > 0) {
       result.push({
         name: 'Organik',
@@ -95,7 +124,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
   }, [dataToUse, sumberLeadsData]);
 
   // Data untuk chart kode ads dengan breakdown ID Ads
-  const kodeAdsChartData = useMemo(() => {
+  const kodeAdsChartData = useMemo((): ChartDataItem[] => {
     return kodeAdsData.map(kode => {
       const prospekItems = dataToUse.filter(item => item.kode_ads?.kode === kode.kode);
       const prospekCount = prospekItems.length;
@@ -103,7 +132,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
       const ctr = prospekCount > 0 ? (leadsCount / prospekCount) * 100 : 0;
 
       // Group by ID Ads for breakdown
-      const idAdsBreakdown = prospekItems.reduce((acc, item) => {
+      const idAdsBreakdown = prospekItems.reduce((acc: Record<string, { prospek: number; leads: number }>, item) => {
         const idAds = item.id_ads || 'Tidak Ada ID';
         if (!acc[idAds]) {
           acc[idAds] = { prospek: 0, leads: 0 };
@@ -113,7 +142,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
           acc[idAds].leads++;
         }
         return acc;
-      }, {} as Record<string, { prospek: number; leads: number }>);
+      }, {});
 
       const idAdsBreakdownArray = Object.entries(idAdsBreakdown).map(([idAds, data]) => ({
         idAds,
@@ -137,7 +166,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
   }, [dataToUse, kodeAdsData]);
 
   // Data untuk chart layanan
-  const layananChartData = useMemo(() => {
+  const layananChartData = useMemo((): ChartDataItem[] => {
     return layananData.map(layanan => {
       const prospekItems = dataToUse.filter(item => item.layanan_assist?.nama === layanan.nama);
       const prospekCount = prospekItems.length;
@@ -155,8 +184,8 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
   }, [dataToUse, layananData]);
 
   // Data untuk chart kota/kabupaten
-  const kotaKabupatenChartData = useMemo(() => {
-    const kotaCounts = dataToUse.reduce((acc, item) => {
+  const kotaKabupatenChartData = useMemo((): ChartDataItem[] => {
+    const kotaCounts = dataToUse.reduce((acc: Record<string, { prospek: number; leads: number }>, item) => {
       const kota = item.kota;
       if (!acc[kota]) {
         acc[kota] = { prospek: 0, leads: 0 };
@@ -166,7 +195,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
         acc[kota].leads++;
       }
       return acc;
-    }, {} as Record<string, { prospek: number; leads: number }>);
+    }, {});
 
     return Object.entries(kotaCounts).map(([kota, data]) => ({
       name: kota,
@@ -178,8 +207,8 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
   }, [dataToUse]);
 
   // Data untuk performa CS
-  const performaCSData = useMemo(() => {
-    const csPerformance = dataToUse.reduce((acc, item) => {
+  const performaCSData = useMemo((): PerformaCSItem[] => {
+    const csPerformance = dataToUse.reduce((acc: Record<string, { prospek: number; leads: number; bukanLeads: number }>, item) => {
       const csName = item.created_by_profile?.full_name || 'Unknown';
       if (!acc[csName]) {
         acc[csName] = { prospek: 0, leads: 0, bukanLeads: 0 };
@@ -191,7 +220,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
         acc[csName].bukanLeads++;
       }
       return acc;
-    }, {} as Record<string, { prospek: number; leads: number; bukanLeads: number }>);
+    }, {});
 
     return Object.entries(csPerformance).map(([name, data]) => ({
       name,
@@ -292,7 +321,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
   }
 
   const renderChart = () => {
-    let data;
+    let data: ChartDataItem[] | PerformaCSItem[];
     switch (activeTab) {
       case 'sumber-leads':
         data = sumberLeadsChartData;
@@ -358,7 +387,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
   };
 
   const renderTable = () => {
-    let data, columns;
+    let data: ChartDataItem[] | PerformaCSItem[], columns: string[];
     
     switch (activeTab) {
       case 'sumber-leads':
@@ -413,7 +442,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {data.map((item, index) => (
+                {(data as ChartDataItem[]).map((item, index) => (
                   <tr key={index} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {item.isOrganik && item.organikBreakdown && item.organikBreakdown.length > 0 ? (
@@ -423,6 +452,13 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
                               <AccordionTrigger className="hover:no-underline p-0 font-medium text-gray-900 [&[data-state=open]>div]:bg-transparent">
                                 <div className="flex items-center justify-between w-full py-0">
                                   <span>{item.name}</span>
+                                  <div className="flex items-center gap-6 text-center">
+                                    <span className="w-16">{item.prospek}</span>
+                                    <span className="w-16">{item.leads}</span>
+                                    <span className={`inline-flex px-3 py-1 text-xs rounded-full w-20 justify-center ${getCTRColor(item.ctr)}`}>
+                                      {item.ctr}%
+                                    </span>
+                                  </div>
                                 </div>
                               </AccordionTrigger>
                               <AccordionContent className="pt-2 pl-4">
@@ -448,13 +484,17 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
                         item.name
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
-                        {item.ctr}%
-                      </span>
-                    </td>
+                    {(!item.isOrganik || !item.organikBreakdown || item.organikBreakdown.length === 0) && (
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                            {item.ctr}%
+                          </span>
+                        </td>
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -483,7 +523,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {data.map((item, index) => (
+                {(data as ChartDataItem[]).map((item, index) => (
                   <tr key={index} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {item.idAdsBreakdown && item.idAdsBreakdown.length > 0 ? (
@@ -567,21 +607,34 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data.map((item, index) => (
-                <tr key={index} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
-                  {activeTab === 'performa-cs' && (
+              {activeTab === 'performa-cs' ? (
+                (data as PerformaCSItem[]).map((item, index) => (
+                  <tr key={index} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 text-center font-medium">{item.bukanLeads}</td>
-                  )}
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
-                      {item.ctr}%
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                        {item.ctr}%
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                (data as ChartDataItem[]).map((item, index) => (
+                  <tr key={index} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                        {item.ctr}%
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
