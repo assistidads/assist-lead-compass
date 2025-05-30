@@ -74,29 +74,60 @@ export function SupabaseProspekForm({ isEdit = false, prospekId, onSuccess }: Su
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Form submission started');
+    console.log('Current form data:', formData);
+    
     if (!validateForm()) {
+      console.log('Form validation failed');
       return;
     }
 
+    console.log('Form validation passed, proceeding with submission');
+
     // Convert display IDs back to actual IDs for submission
     const submissionData = {
-      ...formData,
-      sumber_leads_id: sumberLeadsOptions.find(s => s.id === formData.sumber_leads_id)?.id || null,
-      kode_ads_id: kodeAdsOptions.find(k => k.id === formData.kode_ads_id)?.id || null,
-      layanan_assist_id: layananAssistOptions.find(l => l.id === formData.layanan_assist_id)?.id || null,
-      alasan_bukan_leads_id: alasanBukanLeadsOptions.find(a => a.id === formData.alasan_bukan_leads_id)?.id || null,
-      pic_leads_id: usersOptions.find(u => u.id === formData.pic_leads_id)?.id || null,
+      tanggal_prospek: formData.tanggal_prospek,
+      sumber_leads_id: formData.sumber_leads_id || null,
+      kode_ads_id: formData.kode_ads_id || null,
+      id_ads: formData.id_ads || null,
+      nama_prospek: formData.nama_prospek,
+      no_whatsapp: formData.no_whatsapp,
+      status_leads: formData.status_leads,
+      alasan_bukan_leads_id: formData.alasan_bukan_leads_id || null,
+      keterangan_bukan_leads: formData.keterangan_bukan_leads || null,
+      layanan_assist_id: formData.layanan_assist_id || null,
+      nama_faskes: formData.nama_faskes,
+      tipe_faskes: formData.tipe_faskes,
+      provinsi_id: formData.provinsi_id,
+      provinsi_nama: formData.provinsi_nama,
+      kota: formData.kota,
+      pic_leads_id: formData.pic_leads_id || null,
     };
 
-    let result;
-    if (isEdit && prospekId) {
-      result = await updateProspek(prospekId, submissionData);
-    } else {
-      result = await createProspek(submissionData);
-    }
+    console.log('Submission data:', submissionData);
 
-    if (result && onSuccess) {
-      onSuccess();
+    let result;
+    try {
+      if (isEdit && prospekId) {
+        console.log('Updating prospek with ID:', prospekId);
+        result = await updateProspek(prospekId, submissionData);
+      } else {
+        console.log('Creating new prospek');
+        result = await createProspek(submissionData);
+      }
+
+      console.log('Operation result:', result);
+
+      if (result && onSuccess) {
+        onSuccess();
+      }
+    } catch (error) {
+      console.error('Error during form submission:', error);
+      toast({
+        title: "Error",
+        description: "Terjadi kesalahan saat menyimpan data",
+        variant: "destructive",
+      });
     }
   };
 
