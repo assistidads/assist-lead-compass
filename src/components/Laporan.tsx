@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useReportData } from './reports/hooks/useReportData';
+import { useAuth } from '@/contexts/AuthContext';
 import { ReportChart } from './reports/ReportChart';
 import { ReportTable } from './reports/ReportTable';
 
@@ -12,6 +13,8 @@ interface LaporanProps {
 
 export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanProps) {
   const { loading } = useSupabaseData();
+  const { user } = useAuth();
+  const userRole = user?.user_metadata?.role || 'cs_support';
   const [activeTab, setActiveTab] = useState(reportType);
   const {
     sumberLeadsChartData,
@@ -37,12 +40,12 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
       case 'sumber-leads':
         return {
           data: sumberLeadsChartData,
-          columns: ['Name', 'Prospek', 'Leads', 'CTR Leads']
+          columns: ['Sumber Leads', 'Prospek', 'Leads', 'CTR Leads']
         };
       case 'kode-ads':
         return {
           data: kodeAdsChartData,
-          columns: ['Name', 'Prospek', 'Leads', 'CTR Leads']
+          columns: ['Kode', 'Prospek', 'Leads', 'CTR Leads']
         };
       case 'layanan-assist':
         return {
@@ -83,13 +86,14 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
     }
   };
 
+  // Filter tabs based on user role
   const tabs = [
     { id: 'sumber-leads', label: 'Sumber Leads' },
     { id: 'kode-ads', label: 'Kode Ads' },
     { id: 'layanan-assist', label: 'Layanan' },
     { id: 'performa-cs', label: 'Performa CS' },
     { id: 'kota-kabupaten', label: 'Kota/Kabupaten' },
-    { id: 'heatmap', label: 'Heatmap' }
+    ...(userRole === 'admin' ? [{ id: 'heatmap', label: 'Heatmap' }] : [])
   ];
 
   return (

@@ -1,6 +1,7 @@
 
 import { useMemo } from 'react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { useAuth } from '@/contexts/AuthContext';
 import { ChartDataItem, PerformaCSItem, DayActivityItem } from '../types';
 
 interface ProspekDataItem {
@@ -11,14 +12,27 @@ interface ProspekDataItem {
   kota: string;
   status_leads: string;
   id_ads?: string;
+  pic_leads?: { full_name: string };
   created_by_profile?: { full_name: string };
 }
 
 export function useReportData(filteredData?: ProspekDataItem[]) {
   const { prospekData, sumberLeadsData, kodeAdsData, layananData } = useSupabaseData();
+  const { user } = useAuth();
+  const userRole = user?.user_metadata?.role || 'cs_support';
   
-  // Use filteredData if provided, otherwise use prospekData
-  const dataToUse = filteredData || prospekData;
+  // For CS Support, filter data to only their own data
+  // For Admin, show all data
+  const dataToUse = useMemo(() => {
+    const baseData = filteredData || prospekData;
+    
+    if (userRole === 'admin') {
+      return baseData; // Admin sees all data
+    } else {
+      // CS Support only sees their own data
+      return baseData.filter(item => item.pic_leads?.full_name === user?.user_metadata?.full_name);
+    }
+  }, [filteredData, prospekData, userRole, user]);
 
   // Data untuk chart sumber leads dengan Organik
   const sumberLeadsChartData = useMemo((): ChartDataItem[] => {
@@ -171,10 +185,12 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
     })).filter(item => item.value > 0);
   }, [dataToUse]);
 
-  // Data untuk performa CS
+  // Data untuk performa CS - Admin sees all users, CS sees only themselves
   const performaCSData = useMemo((): PerformaCSItem[] => {
-    const csPerformance = dataToUse.reduce((acc: Record<string, { prospek: number; leads: number; bukanLeads: number }>, item) => {
-      const csName = item.created_by_profile?.full_name || 'Unknown';
+    const baseDataForCS = userRole === 'admin' ? (filteredData || prospekData) : dataToUse;
+    
+    const csPerformance = baseDataForCS.reduce((acc: Record<string, { prospek: number; leads: number; bukanLeads: number }>, item) => {
+      const csName = item.pic_leads?.full_name || item.created_by_profile?.full_name || 'Unknown';
       if (!acc[csName]) {
         acc[csName] = { prospek: 0, leads: 0, bukanLeads: 0 };
       }
@@ -194,23 +210,24 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
       bukanLeads: data.bukanLeads,
       ctr: data.prospek > 0 ? parseFloat(((data.leads / data.prospek) * 100).toFixed(1)) : 0
     }));
-  }, [dataToUse]);
+  }, [dataToUse, filteredData, prospekData, userRole]);
 
-  // Data untuk heatmap waktu/hari aktivitas prospek dan leads
+  // Data untuk heatmap waktu/hari aktivitas prospek dan leads - Admin only, all data
   const heatmapData = useMemo(() => {
     const daysOfWeek = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const baseDataForHeatmap = filteredData || prospekData; // Always use all data for heatmap
     
     // Analisis berdasarkan hari dalam seminggu dan jam
     const heatmapMatrix: { day: string; hour: number; value: number; leads: number }[] = [];
     
     daysOfWeek.forEach(day => {
       for (let hour = 0; hour < 24; hour++) {
-        const prospekCount = dataToUse.filter(item => {
+        const prospekCount = baseDataForHeatmap.filter(item => {
           const date = new Date(item.tanggal_prospek);
           return daysOfWeek[date.getDay()] === day && date.getHours() === hour;
         }).length;
 
-        const leadsCount = dataToUse.filter(item => {
+        const leadsCount = baseDataForHeatmap.filter(item => {
           const date = new Date(item.tanggal_prospek);
           return daysOfWeek[date.getDay()] === day && date.getHours() === hour && item.status_leads === 'Leads';
         }).length;
@@ -226,12 +243,12 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
 
     // Analisis berdasarkan hari dalam seminggu
     const dayActivity: DayActivityItem[] = daysOfWeek.map(day => {
-      const dayProspekCount = dataToUse.filter(item => {
+      const dayProspekCount = baseDataForHeatmap.filter(item => {
         const date = new Date(item.tanggal_prospek);
         return daysOfWeek[date.getDay()] === day;
       }).length;
 
-      const dayLeadsCount = dataToUse.filter(item => {
+      const dayLeadsCount = baseDataForHeatmap.filter(item => {
         const date = new Date(item.tanggal_prospek);
         return daysOfWeek[date.getDay()] === day && item.status_leads === 'Leads';
       }).length;
@@ -245,7 +262,7 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
     });
 
     return { dayActivity, heatmapMatrix };
-  }, [dataToUse]);
+  }, [filteredData, prospekData]);
 
   return {
     sumberLeadsChartData,

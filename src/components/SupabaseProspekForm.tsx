@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { useSupabaseProspekForm } from '@/hooks/useSupabaseProspekForm';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { useAuth } from '@/contexts/AuthContext';
 import { SupabaseProspekFormBasicFields } from './SupabaseProspekFormBasicFields';
 import { SupabaseProspekFormStatusFields } from './SupabaseProspekFormStatusFields';
 import { SupabaseProspekFormFaskesFields } from './SupabaseProspekFormFaskesFields';
@@ -16,6 +17,9 @@ interface SupabaseProspekFormProps {
 }
 
 export function SupabaseProspekForm({ isEdit = false, prospekId, onSuccess }: SupabaseProspekFormProps) {
+  const { user } = useAuth();
+  const userRole = user?.user_metadata?.role || 'cs_support';
+  
   const {
     formData,
     setFormData,
@@ -101,7 +105,7 @@ export function SupabaseProspekForm({ isEdit = false, prospekId, onSuccess }: Su
       provinsi_id: formData.provinsi_id,
       provinsi_nama: formData.provinsi_nama,
       kota: formData.kota,
-      pic_leads_id: formData.pic_leads_id || null,
+      pic_leads_id: userRole === 'admin' ? formData.pic_leads_id || null : user?.id || null,
     };
 
     console.log('Submission data:', submissionData);
@@ -162,6 +166,7 @@ export function SupabaseProspekForm({ isEdit = false, prospekId, onSuccess }: Su
               loadingRegencies={loadingRegencies}
               layananAssistOptions={layananAssistOptions}
               usersOptions={usersOptions}
+              userRole={userRole}
             />
           </div>
 

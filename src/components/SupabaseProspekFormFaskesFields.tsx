@@ -2,8 +2,8 @@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2 } from 'lucide-react';
 import { SupabaseProspekFormData } from '@/hooks/useSupabaseProspekForm';
-import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 interface Province {
   id: string;
@@ -12,8 +12,17 @@ interface Province {
 
 interface Regency {
   id: string;
-  province_id: string;
   name: string;
+}
+
+interface LayananAssistOption {
+  id: string;
+  nama: string;
+}
+
+interface UserOption {
+  id: string;
+  full_name: string;
 }
 
 interface SupabaseProspekFormFaskesFieldsProps {
@@ -22,9 +31,18 @@ interface SupabaseProspekFormFaskesFieldsProps {
   provinces: Province[];
   regencies: Regency[];
   loadingRegencies: boolean;
-  layananAssistOptions: any[];
-  usersOptions: any[];
+  layananAssistOptions: LayananAssistOption[];
+  usersOptions: UserOption[];
+  userRole?: string;
 }
+
+// Master data tipe faskes
+const tipeFaskesOptions = [
+  'Rumah Sakit',
+  'Puskesmas', 
+  'Klinik',
+  'Lab Kesehatan'
+];
 
 export function SupabaseProspekFormFaskesFields({ 
   formData, 
@@ -33,10 +51,9 @@ export function SupabaseProspekFormFaskesFields({
   regencies, 
   loadingRegencies,
   layananAssistOptions,
-  usersOptions
+  usersOptions,
+  userRole = 'cs_support'
 }: SupabaseProspekFormFaskesFieldsProps) {
-  const { tipeFaskesData } = useSupabaseData();
-
   return (
     <>
       {/* Layanan Assist */}
@@ -47,8 +64,8 @@ export function SupabaseProspekFormFaskesFields({
             <SelectValue placeholder="Pilih layanan assist" />
           </SelectTrigger>
           <SelectContent>
-            {layananAssistOptions.map(item => (
-              <SelectItem key={item.id} value={item.id}>{item.nama}</SelectItem>
+            {layananAssistOptions.map(layanan => (
+              <SelectItem key={layanan.id} value={layanan.id}>{layanan.nama}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -61,13 +78,12 @@ export function SupabaseProspekFormFaskesFields({
           id="nama_faskes"
           value={formData.nama_faskes}
           onChange={(e) => onInputChange('nama_faskes', e.target.value)}
-          placeholder="Masukkan nama fasilitas kesehatan"
-          autoComplete="off"
+          placeholder="Masukkan nama faskes"
           required
         />
       </div>
 
-      {/* Tipe Faskes - Updated to use data master */}
+      {/* Tipe Faskes */}
       <div>
         <Label htmlFor="tipe_faskes">Tipe Faskes <span className="text-red-500">*</span></Label>
         <Select value={formData.tipe_faskes} onValueChange={(value) => onInputChange('tipe_faskes', value)} required>
@@ -75,8 +91,8 @@ export function SupabaseProspekFormFaskesFields({
             <SelectValue placeholder="Pilih tipe faskes" />
           </SelectTrigger>
           <SelectContent>
-            {tipeFaskesData.map(item => (
-              <SelectItem key={item.id} value={item.nama || ''}>{item.nama}</SelectItem>
+            {tipeFaskesOptions.map(tipe => (
+              <SelectItem key={tipe} value={tipe}>{tipe}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -97,44 +113,51 @@ export function SupabaseProspekFormFaskesFields({
         </Select>
       </div>
 
-      {/* Kota */}
+      {/* Kota/Kabupaten */}
       <div>
         <Label htmlFor="kota">Kota/Kabupaten <span className="text-red-500">*</span></Label>
         <Select 
           value={formData.kota} 
           onValueChange={(value) => onInputChange('kota', value)} 
-          disabled={!formData.provinsi_id}
+          disabled={loadingRegencies || !formData.provinsi_id}
           required
         >
           <SelectTrigger>
-            <SelectValue placeholder={
-              !formData.provinsi_id ? "Pilih provinsi dulu" :
-              loadingRegencies ? "Memuat..." : 
-              "Pilih kota/kabupaten"
-            } />
+            <SelectValue placeholder={loadingRegencies ? "Memuat..." : "Pilih kota/kabupaten"} />
           </SelectTrigger>
           <SelectContent>
-            {regencies.map(regency => (
-              <SelectItem key={regency.id} value={regency.name}>{regency.name}</SelectItem>
-            ))}
+            {loadingRegencies ? (
+              <SelectItem value="loading" disabled>
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Memuat data...
+                </div>
+              </SelectItem>
+            ) : (
+              regencies.map(regency => (
+                <SelectItem key={regency.id} value={regency.name}>{regency.name}</SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
       </div>
 
-      {/* PIC Leads */}
-      <div>
-        <Label htmlFor="pic_leads_id">PIC Leads <span className="text-red-500">*</span></Label>
-        <Select value={formData.pic_leads_id} onValueChange={(value) => onInputChange('pic_leads_id', value)} required>
-          <SelectTrigger>
-            <SelectValue placeholder="Pilih PIC Leads" />
-          </SelectTrigger>
-          <SelectContent>
-            {usersOptions.map(user => (
-              <SelectItem key={user.id} value={user.id}>{user.full_name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* PIC Leads - Only for Admin */}
+      {userRole === 'admin' && (
+        <div>
+          <Label htmlFor="pic_leads_id">PIC Leads</Label>
+          <Select value={formData.pic_leads_id} onValueChange={(value) => onInputChange('pic_leads_id', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Pilih PIC Leads" />
+            </SelectTrigger>
+            <SelectContent>
+              {usersOptions.map(user => (
+                <SelectItem key={user.id} value={user.id}>{user.full_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </>
   );
 }
