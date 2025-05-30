@@ -3,7 +3,18 @@ import { useMemo } from 'react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { ChartDataItem, PerformaCSItem, DayActivityItem } from '../types';
 
-export function useReportData(filteredData?: any[]) {
+interface ProspekDataItem {
+  tanggal_prospek: string;
+  sumber_leads?: { nama: string };
+  kode_ads?: { kode: string };
+  layanan_assist?: { nama: string };
+  kota: string;
+  status_leads: string;
+  id_ads?: string;
+  created_by_profile?: { full_name: string };
+}
+
+export function useReportData(filteredData?: ProspekDataItem[]) {
   const { prospekData, sumberLeadsData, kodeAdsData, layananData } = useSupabaseData();
   
   // Use filteredData if provided, otherwise use prospekData
