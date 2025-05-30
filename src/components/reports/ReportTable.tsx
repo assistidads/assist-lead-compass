@@ -106,23 +106,22 @@ export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
           <table className="w-full">
             <thead className="bg-gray-100">
               <tr>
-                {columns.map((column, index) => (
-                  <th key={column} className={`px-6 py-4 text-sm font-semibold text-gray-900 ${index === 0 ? 'text-left' : 'text-center'}`}>
-                    {column}
-                  </th>
-                ))}
+                <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-left">Kode</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Prospek</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Leads</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">CTR Leads</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {(data as ChartDataItem[]).map((item, index) => (
                 <tr key={index} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {item.idAdsBreakdown && item.idAdsBreakdown.length > 0 ? (
-                      <div className="w-full">
+                  {item.idAdsBreakdown && item.idAdsBreakdown.length > 0 ? (
+                    <>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900" colSpan={4}>
                         <Accordion type="single" collapsible className="w-full">
                           <AccordionItem value={`kode-${index}`} className="border-none">
                             <AccordionTrigger className="hover:no-underline p-0 font-medium text-gray-900">
-                              <div className="grid grid-cols-4 w-full items-center">
+                              <div className="w-full grid grid-cols-4 items-center">
                                 <span className="text-left">{item.name}</span>
                                 <span className="text-center text-sm">{item.prospek}</span>
                                 <span className="text-center text-sm">{item.leads}</span>
@@ -136,7 +135,7 @@ export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
                             <AccordionContent className="pt-2">
                               <div className="space-y-2">
                                 {item.idAdsBreakdown.map((breakdown, bIndex) => (
-                                  <div key={bIndex} className="grid grid-cols-4 items-center py-2 border-b border-gray-100 last:border-b-0 pl-4">
+                                  <div key={bIndex} className="w-full grid grid-cols-4 items-center py-2 border-b border-gray-100 last:border-b-0 pl-4">
                                     <span className="text-sm text-gray-600 font-medium">ID: {breakdown.idAds}</span>
                                     <span className="text-center text-sm text-gray-700">{breakdown.prospek}</span>
                                     <span className="text-center text-sm text-gray-700">{breakdown.leads}</span>
@@ -151,20 +150,20 @@ export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
                             </AccordionContent>
                           </AccordionItem>
                         </Accordion>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-4 w-full items-center">
-                        <span className="text-left">{item.name}</span>
-                        <span className="text-center text-sm font-medium">{item.prospek}</span>
-                        <span className="text-center text-sm font-medium">{item.leads}</span>
-                        <span className="text-center">
-                          <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
-                            {item.ctr}%
-                          </span>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.leads}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCTRColor(item.ctr)}`}>
+                          {item.ctr}%
                         </span>
-                      </div>
-                    )}
-                  </td>
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>
