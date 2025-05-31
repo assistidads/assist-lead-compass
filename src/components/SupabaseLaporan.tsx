@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,7 +23,7 @@ interface DateRange {
 
 export function SupabaseLaporan() {
   const { prospekData } = useSupabaseData();
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>('today');
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('this-month');
   const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
   const [filteredData, setFilteredData] = useState(prospekData);
 

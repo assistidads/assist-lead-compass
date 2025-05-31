@@ -49,10 +49,10 @@ export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
               {(data as ChartDataItem[]).map((item, index) => (
                 <tr key={index} className="hover:bg-gray-50 transition-colors">
                   {item.isOrganik && item.organikBreakdown && item.organikBreakdown.length > 0 ? (
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900" colSpan={4}>
+                    <td className="px-0 py-0" colSpan={4}>
                       <Accordion type="single" collapsible className="w-full">
                         <AccordionItem value="organik" className="border-none">
-                          <AccordionTrigger className="hover:no-underline p-0 font-medium text-gray-900">
+                          <AccordionTrigger className="hover:no-underline px-6 py-4 font-medium text-gray-900">
                             <div className="w-full flex items-center">
                               <div className="flex-1 text-left">{item.name}</div>
                               <div className="w-24 text-center text-sm">{item.prospek}</div>
@@ -64,7 +64,7 @@ export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
                               </div>
                             </div>
                           </AccordionTrigger>
-                          <AccordionContent className="pt-2">
+                          <AccordionContent className="px-6 pt-0 pb-4">
                             <div className="space-y-2">
                               {item.organikBreakdown.map((breakdown, bIndex) => (
                                 <div key={bIndex} className="w-full flex items-center py-2 border-b border-gray-100 last:border-b-0 pl-4">
@@ -125,10 +125,10 @@ export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
               {(data as ChartDataItem[]).map((item, index) => (
                 <tr key={index} className="hover:bg-gray-50 transition-colors">
                   {item.idAdsBreakdown && item.idAdsBreakdown.length > 0 ? (
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900" colSpan={4}>
+                    <td className="px-0 py-0" colSpan={4}>
                       <Accordion type="single" collapsible className="w-full">
                         <AccordionItem value={`kode-${index}`} className="border-none">
-                          <AccordionTrigger className="hover:no-underline p-0 font-medium text-gray-900">
+                          <AccordionTrigger className="hover:no-underline px-6 py-4 font-medium text-gray-900">
                             <div className="w-full flex items-center">
                               <div className="flex-1 text-left">{item.name}</div>
                               <div className="w-24 text-center text-sm">{item.prospek}</div>
@@ -140,7 +140,7 @@ export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
                               </div>
                             </div>
                           </AccordionTrigger>
-                          <AccordionContent className="pt-2">
+                          <AccordionContent className="px-6 pt-0 pb-4">
                             <div className="space-y-2">
                               {item.idAdsBreakdown.map((breakdown, bIndex) => (
                                 <div key={bIndex} className="w-full flex items-center py-2 border-b border-gray-100 last:border-b-0 pl-4">
