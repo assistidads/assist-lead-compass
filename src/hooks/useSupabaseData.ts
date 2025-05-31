@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -127,16 +126,24 @@ export function useSupabaseData() {
 
       if (error) throw error;
       
+      console.log('Raw prospek data from query:', data);
+      
       // Type assertion to handle the Supabase response structure
-      setProspekData((data as any[])?.map(item => ({
-        ...item,
-        sumber_leads: item.sumber_leads || null,
-        kode_ads: item.kode_ads || null,
-        layanan_assist: item.layanan_assist || null,
-        alasan_bukan_leads: item.alasan_bukan_leads || null,
-        pic_leads: item.pic_leads || null,
-        created_by_profile: item.created_by_profile || null
-      })) || []);
+      const processedData = (data as any[])?.map(item => {
+        console.log('Processing item:', item);
+        return {
+          ...item,
+          sumber_leads: item.sumber_leads || null,
+          kode_ads: item.kode_ads || null,
+          layanan_assist: item.layanan_assist || null,
+          alasan_bukan_leads: item.alasan_bukan_leads || null,
+          pic_leads: item.pic_leads || null,
+          created_by_profile: item.created_by_profile || null
+        };
+      }) || [];
+      
+      console.log('Processed prospek data:', processedData);
+      setProspekData(processedData);
     } catch (error) {
       console.error('Error fetching prospek data:', error);
       toast({

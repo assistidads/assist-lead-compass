@@ -26,6 +26,10 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
   const dataToUse = useMemo(() => {
     const baseData = filteredData || prospekData;
     
+    console.log('Base data for reports:', baseData);
+    console.log('User role:', userRole);
+    console.log('User full name:', user?.user_metadata?.full_name);
+    
     if (userRole === 'admin') {
       return baseData; // Admin sees all data
     } else {
@@ -189,8 +193,18 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
   const performaCSData = useMemo((): PerformaCSItem[] => {
     const baseDataForCS = userRole === 'admin' ? (filteredData || prospekData) : dataToUse;
     
+    console.log('Base data for CS performance:', baseDataForCS);
+    
     const csPerformance = baseDataForCS.reduce((acc: Record<string, { prospek: number; leads: number; bukanLeads: number }>, item) => {
+      // Prioritize pic_leads, fallback to created_by_profile
       const csName = item.pic_leads?.full_name || item.created_by_profile?.full_name || 'Unknown';
+      
+      console.log('Processing CS item:', {
+        pic_leads: item.pic_leads,
+        created_by_profile: item.created_by_profile,
+        csName
+      });
+      
       if (!acc[csName]) {
         acc[csName] = { prospek: 0, leads: 0, bukanLeads: 0 };
       }
@@ -202,6 +216,8 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
       }
       return acc;
     }, {});
+
+    console.log('CS Performance data:', csPerformance);
 
     return Object.entries(csPerformance).map(([name, data]) => ({
       name,
