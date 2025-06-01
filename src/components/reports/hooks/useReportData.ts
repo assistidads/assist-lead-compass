@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
@@ -108,13 +107,17 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
 
   // Data untuk chart kode ads dengan breakdown ID Ads
   const kodeAdsChartData = useMemo((): ChartDataItem[] => {
+    console.log('Processing kode ads data...');
+    
     return kodeAdsData.map(kode => {
       const prospekItems = dataToUse.filter(item => item.kode_ads?.kode === kode.kode);
       const prospekCount = prospekItems.length;
       const leadsCount = prospekItems.filter(item => item.status_leads === 'Leads').length;
       const ctr = prospekCount > 0 ? (leadsCount / prospekCount) * 100 : 0;
 
-      // Group by ID Ads for breakdown
+      console.log(`Processing kode: ${kode.kode}, prospek items:`, prospekItems);
+
+      // Group by ID Ads for breakdown - ALWAYS create breakdown if there are prospek items
       const idAdsBreakdown = prospekItems.reduce((acc: Record<string, { prospek: number; leads: number }>, item) => {
         const idAds = item.id_ads || 'Tidak Ada ID';
         if (!acc[idAds]) {
@@ -127,6 +130,8 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
         return acc;
       }, {});
 
+      console.log(`ID Ads breakdown for ${kode.kode}:`, idAdsBreakdown);
+
       const idAdsBreakdownArray = Object.entries(idAdsBreakdown).map(([idAds, data]) => ({
         idAds,
         prospek: data.prospek,
@@ -134,8 +139,7 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
         ctr: data.prospek > 0 ? parseFloat(((data.leads / data.prospek) * 100).toFixed(1)) : 0
       }));
 
-      // Only show breakdown if there are multiple ID Ads
-      const shouldShowBreakdown = Object.keys(idAdsBreakdown).length > 1;
+      console.log(`ID Ads breakdown array for ${kode.kode}:`, idAdsBreakdownArray);
 
       return {
         name: kode.kode || '',
@@ -143,7 +147,7 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
         prospek: prospekCount,
         leads: leadsCount,
         ctr: parseFloat(ctr.toFixed(1)),
-        idAdsBreakdown: shouldShowBreakdown ? idAdsBreakdownArray : []
+        idAdsBreakdown: idAdsBreakdownArray // Always include breakdown, even if empty
       };
     }).filter(item => item.value > 0);
   }, [dataToUse, kodeAdsData]);
