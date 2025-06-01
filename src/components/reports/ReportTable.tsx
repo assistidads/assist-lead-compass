@@ -1,3 +1,4 @@
+
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ChartDataItem, PerformaCSItem } from './types';
 import { getCTRColor } from './utils';
@@ -138,10 +139,10 @@ export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
                             </div>
                           </div>
                         </AccordionTrigger>
-                        {item.idAdsBreakdown && item.idAdsBreakdown.length > 0 && (
-                          <AccordionContent className="px-6 pt-0 pb-4">
-                            <div className="space-y-2">
-                              {item.idAdsBreakdown
+                        <AccordionContent className="px-6 pt-0 pb-4">
+                          <div className="space-y-2">
+                            {item.idAdsBreakdown && item.idAdsBreakdown.length > 0 ? (
+                              item.idAdsBreakdown
                                 .filter(breakdown => breakdown.prospek > 0)
                                 .map((breakdown, bIndex) => (
                                   <div key={bIndex} className="w-full flex items-center py-2 border-b border-gray-100 last:border-b-0 pl-4">
@@ -154,10 +155,12 @@ export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
                                       </span>
                                     </div>
                                   </div>
-                                ))}
-                            </div>
-                          </AccordionContent>
-                        )}
+                                ))
+                            ) : (
+                              <div className="text-sm text-gray-500 pl-4">Tidak ada rincian ID Ads</div>
+                            )}
+                          </div>
+                        </AccordionContent>
                       </AccordionItem>
                     </Accordion>
                   </td>
