@@ -1,4 +1,3 @@
-
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ChartDataItem, PerformaCSItem } from './types';
 import { getCTRColor } from './utils';
@@ -145,17 +144,17 @@ export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
                               {item.idAdsBreakdown
                                 .filter(breakdown => breakdown.prospek > 0)
                                 .map((breakdown, bIndex) => (
-                                <div key={bIndex} className="w-full flex items-center py-2 border-b border-gray-100 last:border-b-0 pl-4">
-                                  <div className="flex-1 text-sm text-gray-600">ID: {breakdown.idAds}</div>
-                                  <div className="w-24 text-center text-sm text-gray-700">{breakdown.prospek}</div>
-                                  <div className="w-24 text-center text-sm text-gray-700">{breakdown.leads}</div>
-                                  <div className="w-24 text-center">
-                                    <span className={`inline-flex px-2 py-1 text-xs rounded-full justify-center ${getCTRColor(breakdown.ctr)}`}>
-                                      {breakdown.ctr}%
-                                    </span>
+                                  <div key={bIndex} className="w-full flex items-center py-2 border-b border-gray-100 last:border-b-0 pl-4">
+                                    <div className="flex-1 text-sm text-gray-600">ID: {breakdown.idAds}</div>
+                                    <div className="w-24 text-center text-sm text-gray-700">{breakdown.prospek}</div>
+                                    <div className="w-24 text-center text-sm text-gray-700">{breakdown.leads}</div>
+                                    <div className="w-24 text-center">
+                                      <span className={`inline-flex px-2 py-1 text-xs rounded-full justify-center ${getCTRColor(breakdown.ctr)}`}>
+                                        {breakdown.ctr}%
+                                      </span>
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                ))}
                             </div>
                           </AccordionContent>
                         )}
