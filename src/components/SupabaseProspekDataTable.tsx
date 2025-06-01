@@ -90,7 +90,7 @@ export function SupabaseProspekDataTable({
     namaFaskes: item.nama_faskes,
     tipeFaskes: item.tipe_faskes,
     lokasiFaskes: `${item.provinsi_nama}, ${item.kota}`,
-    picLeads: item.pic_leads?.full_name || ''
+    picLeads: item.pic_leads?.full_name || item.created_by_profile?.full_name || ''
   }));
 
   if (loading) {
