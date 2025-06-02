@@ -1,8 +1,11 @@
 
+import { useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ChartDataItem, PerformaCSItem } from './types';
 import { getCTRColor } from './utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ReportTableProps {
   activeTab: string;
@@ -13,20 +16,27 @@ interface ReportTableProps {
 export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
   const { user } = useAuth();
   const userRole = user?.user_metadata?.role || 'cs_support';
+  
+  // Pagination state for kota-kabupaten table
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  if (activeTab === 'heatmap') {
-    // Only admin can see heatmap
-    if (userRole !== 'admin') {
-      return (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="text-center text-gray-500">
-            <p>Akses terbatas untuk admin</p>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  }
+  // Calculate pagination for kota-kabupaten
+  const getPaginatedData = () => {
+    if (activeTab !== 'kota-kabupaten') return data;
+    
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return (data as ChartDataItem[]).slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = () => {
+    if (activeTab !== 'kota-kabupaten') return 1;
+    return Math.ceil(data.length / itemsPerPage);
+  };
+
+  const paginatedData = getPaginatedData();
+  const totalPages = getTotalPages();
 
   // Special handling for Sumber Leads with Organik accordion
   if (activeTab === 'sumber-leads') {
@@ -201,7 +211,7 @@ export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {activeTab === 'performa-cs' ? (
-              (data as PerformaCSItem[]).map((item, index) => (
+              (paginatedData as PerformaCSItem[]).map((item, index) => (
                 <tr key={index} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
@@ -215,7 +225,7 @@ export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
                 </tr>
               ))
             ) : (
-              (data as ChartDataItem[]).map((item, index) => (
+              (paginatedData as ChartDataItem[]).map((item, index) => (
                 <tr key={index} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center font-medium">{item.prospek}</td>
@@ -231,6 +241,50 @@ export function ReportTable({ activeTab, data, columns }: ReportTableProps) {
           </tbody>
         </table>
       </div>
+      
+      {/* Pagination for kota-kabupaten table */}
+      {activeTab === 'kota-kabupaten' && totalPages > 1 && (
+        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+          <div className="text-sm text-gray-700">
+            Menampilkan {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, data.length)} dari {data.length} data
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Sebelumnya
+            </Button>
+            
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCurrentPage(page)}
+                  className="w-8 h-8 p-0"
+                >
+                  {page}
+                </Button>
+              ))}
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Selanjutnya
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

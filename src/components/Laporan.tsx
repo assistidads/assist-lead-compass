@@ -21,8 +21,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
     kodeAdsChartData,
     layananChartData,
     kotaKabupatenChartData,
-    performaCSData,
-    heatmapData
+    performaCSData
   } = useReportData(filteredData);
 
   if (loading) {
@@ -57,11 +56,6 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
           data: kotaKabupatenChartData,
           columns: ['Kota/Kabupaten', 'Prospek', 'Leads', 'CTR Leads']
         };
-      case 'heatmap':
-        return {
-          data: heatmapData.dayActivity.map(item => ({ ...item, value: item.prospek })),
-          columns: ['Hari', 'Prospek', 'Leads', 'CTR Leads']
-        };
       case 'performa-cs':
         return {
           data: performaCSData,
@@ -81,19 +75,17 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
       case 'layanan-assist': return 'Distribusi Layanan Assist';
       case 'performa-cs': return 'Performa CS';
       case 'kota-kabupaten': return 'Distribusi Kota/Kabupaten';
-      case 'heatmap': return 'Heatmap Aktivitas Prospek & Leads';
       default: return 'Laporan';
     }
   };
 
-  // Filter tabs based on user role
+  // Filter tabs - removed heatmap tab
   const tabs = [
     { id: 'sumber-leads', label: 'Sumber Leads' },
     { id: 'kode-ads', label: 'Kode Ads' },
     { id: 'layanan-assist', label: 'Layanan' },
     { id: 'performa-cs', label: 'Performa CS' },
-    { id: 'kota-kabupaten', label: 'Kota/Kabupaten' },
-    ...(userRole === 'admin' ? [{ id: 'heatmap', label: 'Heatmap' }] : [])
+    { id: 'kota-kabupaten', label: 'Kota/Kabupaten' }
   ];
 
   return (
@@ -120,32 +112,20 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
         </div>
       </div>
 
-      {/* For heatmap, show full width */}
-      {activeTab === 'heatmap' ? (
-        <div>
-          <ReportChart
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ReportChart
+          activeTab={activeTab}
+          data={data}
+          title={getTitle()}
+        />
+        <div className="space-y-6">
+          <ReportTable
             activeTab={activeTab}
             data={data}
-            heatmapData={heatmapData.heatmapMatrix}
-            title={getTitle()}
+            columns={columns}
           />
         </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ReportChart
-            activeTab={activeTab}
-            data={data}
-            title={getTitle()}
-          />
-          <div className="space-y-6">
-            <ReportTable
-              activeTab={activeTab}
-              data={data}
-              columns={columns}
-            />
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

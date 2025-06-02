@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -179,20 +178,19 @@ export function SupabaseLaporan() {
         </CardContent>
       </Card>
 
-      {/* Detailed Reports with Tabs */}
+      {/* Detailed Reports with Tabs - removed heatmap tab */}
       <Card className="bg-white border border-gray-200">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-900">Laporan Detail</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="sumber-leads" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="sumber-leads">Sumber Leads</TabsTrigger>
               <TabsTrigger value="kode-ads">Kode Ads</TabsTrigger>
               <TabsTrigger value="layanan-assist">Layanan</TabsTrigger>
               <TabsTrigger value="performa-cs">Performa CS</TabsTrigger>
               <TabsTrigger value="kota-kabupaten">Kota/Kabupaten</TabsTrigger>
-              <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
             </TabsList>
             
             <TabsContent value="sumber-leads">
@@ -213,10 +211,6 @@ export function SupabaseLaporan() {
             
             <TabsContent value="kota-kabupaten">
               <Laporan reportType="kota-kabupaten" filteredData={filteredData} />
-            </TabsContent>
-            
-            <TabsContent value="heatmap">
-              <Laporan reportType="heatmap" filteredData={filteredData} />
             </TabsContent>
           </Tabs>
         </CardContent>
