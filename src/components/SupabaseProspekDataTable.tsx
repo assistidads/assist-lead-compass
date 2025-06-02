@@ -74,24 +74,36 @@ export function SupabaseProspekDataTable({
   const currentData = filteredData.slice(startIndex, endIndex);
 
   // Convert SupabaseProspek to ProspekData format for existing components
-  const convertedData = currentData.map(item => ({
-    id: parseInt(item.id) || 0, // Convert string ID to number for compatibility
-    createdDate: new Date(item.created_at).toLocaleDateString('id-ID'),
-    tanggalProspekMasuk: new Date(item.tanggal_prospek).toLocaleDateString('id-ID'),
-    sumberLeads: item.sumber_leads?.nama || '',
-    kodeAds: item.kode_ads?.kode || '',
-    idAds: item.id_ads || '',
-    namaProspek: item.nama_prospek,
-    noWhatsApp: item.no_whatsapp,
-    statusLeads: item.status_leads,
-    alasanBukanLeads: item.alasan_bukan_leads?.alasan || '',
-    keterangan: item.keterangan_bukan_leads || '',
-    layananAssist: item.layanan_assist?.nama || '',
-    namaFaskes: item.nama_faskes,
-    tipeFaskes: item.tipe_faskes,
-    lokasiFaskes: `${item.provinsi_nama}, ${item.kota}`,
-    picLeads: item.pic_leads?.full_name || item.created_by_profile?.full_name || ''
-  }));
+  const convertedData = currentData.map(item => {
+    // Fix PIC Leads logic - prioritize pic_leads, then fallback to creator
+    let picLeads = '';
+    if (item.pic_leads?.full_name) {
+      picLeads = item.pic_leads.full_name;
+    } else if (item.created_by_profile?.full_name) {
+      picLeads = item.created_by_profile.full_name;
+    }
+    
+    console.log('Converting item:', item.id, 'PIC Leads:', picLeads, 'pic_leads:', item.pic_leads, 'created_by_profile:', item.created_by_profile);
+    
+    return {
+      id: parseInt(item.id) || 0, // Convert string ID to number for compatibility
+      createdDate: new Date(item.created_at).toLocaleDateString('id-ID'),
+      tanggalProspekMasuk: new Date(item.tanggal_prospek).toLocaleDateString('id-ID'),
+      sumberLeads: item.sumber_leads?.nama || '',
+      kodeAds: item.kode_ads?.kode || '',
+      idAds: item.id_ads || '',
+      namaProspek: item.nama_prospek,
+      noWhatsApp: item.no_whatsapp,
+      statusLeads: item.status_leads,
+      alasanBukanLeads: item.alasan_bukan_leads?.alasan || '',
+      keterangan: item.keterangan_bukan_leads || '',
+      layananAssist: item.layanan_assist?.nama || '',
+      namaFaskes: item.nama_faskes,
+      tipeFaskes: item.tipe_faskes,
+      lokasiFaskes: `${item.provinsi_nama}, ${item.kota}`,
+      picLeads: picLeads
+    };
+  });
 
   if (loading) {
     return (
