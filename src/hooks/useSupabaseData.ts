@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -131,6 +132,7 @@ export function useSupabaseData() {
       // Type assertion to handle the Supabase response structure
       const processedData = (data as any[])?.map(item => {
         console.log('Processing item:', item);
+        console.log('created_by_profile data:', item.created_by_profile);
         return {
           ...item,
           sumber_leads: item.sumber_leads || null,
