@@ -21,6 +21,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
     kodeAdsChartData,
     layananChartData,
     kotaKabupatenChartData,
+    kotaKabupatenTableData,
     performaCSData
   } = useReportData(filteredData);
 
@@ -53,7 +54,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
         };
       case 'kota-kabupaten':
         return {
-          data: kotaKabupatenChartData,
+          data: kotaKabupatenTableData, // Use table data for table component
           columns: ['Kota/Kabupaten', 'Prospek', 'Leads', 'CTR Leads']
         };
       case 'performa-cs':
@@ -68,13 +69,21 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
 
   const { data, columns } = getDataAndColumns();
 
+  const getChartData = () => {
+    // For kota-kabupaten, use chart data (top 5), for others use regular data
+    if (activeTab === 'kota-kabupaten') {
+      return kotaKabupatenChartData;
+    }
+    return data;
+  };
+
   const getTitle = () => {
     switch (activeTab) {
       case 'sumber-leads': return 'Distribusi Sumber Leads';
       case 'kode-ads': return 'Distribusi Kode Ads';
       case 'layanan-assist': return 'Distribusi Layanan Assist';
       case 'performa-cs': return 'Performa CS';
-      case 'kota-kabupaten': return 'Distribusi Kota/Kabupaten';
+      case 'kota-kabupaten': return 'Distribusi Kota/Kabupaten (Top 5 Kota)';
       default: return 'Laporan';
     }
   };
@@ -115,7 +124,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ReportChart
           activeTab={activeTab}
-          data={data}
+          data={getChartData()}
           title={getTitle()}
         />
         <div className="space-y-6">

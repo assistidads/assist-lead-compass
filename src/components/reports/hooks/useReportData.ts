@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
@@ -170,8 +171,36 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
     }).filter(item => item.value > 0);
   }, [dataToUse, layananData]);
 
-  // Data untuk chart kota/kabupaten
+  // Data untuk chart kota/kabupaten - sorted by leads count, top 5 for chart
   const kotaKabupatenChartData = useMemo((): ChartDataItem[] => {
+    const kotaCounts = dataToUse.reduce((acc: Record<string, { prospek: number; leads: number }>, item) => {
+      const kota = item.kota;
+      if (!acc[kota]) {
+        acc[kota] = { prospek: 0, leads: 0 };
+      }
+      acc[kota].prospek++;
+      if (item.status_leads === 'Leads') {
+        acc[kota].leads++;
+      }
+      return acc;
+    }, {});
+
+    const allKotaData = Object.entries(kotaCounts).map(([kota, data]) => ({
+      name: kota,
+      value: data.prospek,
+      prospek: data.prospek,
+      leads: data.leads,
+      ctr: data.prospek > 0 ? parseFloat(((data.leads / data.prospek) * 100).toFixed(1)) : 0
+    })).filter(item => item.value > 0);
+
+    // Sort by leads count (descending) and take top 5 for chart
+    return allKotaData
+      .sort((a, b) => b.leads - a.leads)
+      .slice(0, 5);
+  }, [dataToUse]);
+
+  // Data untuk tabel kota/kabupaten - all data sorted by leads count
+  const kotaKabupatenTableData = useMemo((): ChartDataItem[] => {
     const kotaCounts = dataToUse.reduce((acc: Record<string, { prospek: number; leads: number }>, item) => {
       const kota = item.kota;
       if (!acc[kota]) {
@@ -190,7 +219,9 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
       prospek: data.prospek,
       leads: data.leads,
       ctr: data.prospek > 0 ? parseFloat(((data.leads / data.prospek) * 100).toFixed(1)) : 0
-    })).filter(item => item.value > 0);
+    }))
+    .filter(item => item.value > 0)
+    .sort((a, b) => b.leads - a.leads); // Sort by leads count descending
   }, [dataToUse]);
 
   // Data untuk performa CS - Admin sees all users, CS sees only themselves
@@ -289,6 +320,7 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
     kodeAdsChartData,
     layananChartData,
     kotaKabupatenChartData,
+    kotaKabupatenTableData,
     performaCSData,
     heatmapData
   };
