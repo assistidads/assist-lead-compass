@@ -19,7 +19,7 @@ export function ReportChart({ activeTab, data, heatmapData, title }: ReportChart
   const chartRef = useRef<HTMLDivElement>(null);
 
   const renderChart = () => {
-    if (activeTab === 'sumber-leads') {
+    if (activeTab === 'sumber-leads' || activeTab === 'tipe-faskes') {
       return (
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>

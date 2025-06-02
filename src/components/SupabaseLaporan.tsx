@@ -178,17 +178,18 @@ export function SupabaseLaporan() {
         </CardContent>
       </Card>
 
-      {/* Detailed Reports with Tabs - removed heatmap tab */}
+      {/* Detailed Reports with Tabs - added tipe-faskes tab */}
       <Card className="bg-white border border-gray-200">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-900">Laporan Detail</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="sumber-leads" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="sumber-leads">Sumber Leads</TabsTrigger>
               <TabsTrigger value="kode-ads">Kode Ads</TabsTrigger>
               <TabsTrigger value="layanan-assist">Layanan</TabsTrigger>
+              <TabsTrigger value="tipe-faskes">Tipe Faskes</TabsTrigger>
               <TabsTrigger value="performa-cs">Performa CS</TabsTrigger>
               <TabsTrigger value="kota-kabupaten">Kota/Kabupaten</TabsTrigger>
             </TabsList>
@@ -203,6 +204,10 @@ export function SupabaseLaporan() {
             
             <TabsContent value="layanan-assist">
               <Laporan reportType="layanan-assist" filteredData={filteredData} />
+            </TabsContent>
+            
+            <TabsContent value="tipe-faskes">
+              <Laporan reportType="tipe-faskes" filteredData={filteredData} />
             </TabsContent>
             
             <TabsContent value="performa-cs">

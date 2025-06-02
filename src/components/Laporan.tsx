@@ -22,6 +22,7 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
     layananChartData,
     kotaKabupatenChartData,
     kotaKabupatenTableData,
+    tipeFaskesChartData,
     performaCSData
   } = useReportData(filteredData);
 
@@ -57,6 +58,11 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
           data: kotaKabupatenTableData, // Use table data for table component
           columns: ['Kota/Kabupaten', 'Prospek', 'Leads', 'CTR Leads']
         };
+      case 'tipe-faskes':
+        return {
+          data: tipeFaskesChartData,
+          columns: ['Tipe Faskes', 'Prospek', 'Leads', 'CTR Leads']
+        };
       case 'performa-cs':
         return {
           data: performaCSData,
@@ -84,15 +90,17 @@ export function Laporan({ reportType = 'sumber-leads', filteredData }: LaporanPr
       case 'layanan-assist': return 'Distribusi Layanan Assist';
       case 'performa-cs': return 'Performa CS';
       case 'kota-kabupaten': return 'Distribusi Kota/Kabupaten (Top 5 Kota)';
+      case 'tipe-faskes': return 'Distribusi Tipe Faskes';
       default: return 'Laporan';
     }
   };
 
-  // Filter tabs - removed heatmap tab
+  // Filter tabs - added tipe-faskes tab
   const tabs = [
     { id: 'sumber-leads', label: 'Sumber Leads' },
     { id: 'kode-ads', label: 'Kode Ads' },
     { id: 'layanan-assist', label: 'Layanan' },
+    { id: 'tipe-faskes', label: 'Tipe Faskes' },
     { id: 'performa-cs', label: 'Performa CS' },
     { id: 'kota-kabupaten', label: 'Kota/Kabupaten' }
   ];

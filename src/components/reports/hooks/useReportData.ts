@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
@@ -315,12 +314,34 @@ export function useReportData(filteredData?: ProspekDataItem[]) {
     return { dayActivity, heatmapMatrix };
   }, [filteredData, prospekData]);
 
+  // Data untuk chart tipe faskes
+  const tipeFaskesChartData = useMemo((): ChartDataItem[] => {
+    // Enumerate all possible tipe faskes values
+    const tipeFaskesValues = ['Klinik', 'Rumah Sakit', 'Puskesmas', 'Apotek', 'Laboratorium', 'Optical'];
+    
+    return tipeFaskesValues.map(tipeFaskes => {
+      const prospekItems = dataToUse.filter(item => item.tipe_faskes === tipeFaskes);
+      const prospekCount = prospekItems.length;
+      const leadsCount = prospekItems.filter(item => item.status_leads === 'Leads').length;
+      const ctr = prospekCount > 0 ? (leadsCount / prospekCount) * 100 : 0;
+
+      return {
+        name: tipeFaskes,
+        value: prospekCount,
+        prospek: prospekCount,
+        leads: leadsCount,
+        ctr: parseFloat(ctr.toFixed(1))
+      };
+    }).filter(item => item.value > 0);
+  }, [dataToUse]);
+
   return {
     sumberLeadsChartData,
     kodeAdsChartData,
     layananChartData,
     kotaKabupatenChartData,
     kotaKabupatenTableData,
+    tipeFaskesChartData,
     performaCSData,
     heatmapData
   };
